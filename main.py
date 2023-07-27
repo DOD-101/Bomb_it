@@ -4,19 +4,21 @@ import threading
 import abc
 import time
 import os
+import typing
 
 from colorama import Fore, init
 init()
 
 SELF_LOC = os.path.dirname(os.path.realpath(__file__))
-WINDOW_HEIGHT = 1100
+WINDOW_HEIGHT = 1000
 WINDOW_WIDTH = WINDOW_HEIGHT
 MENU_WIDTH = 200
 tile_size = 20
 selected_tiles = set()
 explode_time = 1
 FPS = 60
-
+score_types = {}
+total_score = 100
 # define a main function
 def main():
     global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time
@@ -31,7 +33,6 @@ def main():
     kt100 = ConventionalBomb(10, 3,(102, 255, 102), "kt100", "G-kt100")
 
     #-----
-    running = True
     active_bomb_text = '10 kT'
     active_bomb = kt10
 
@@ -39,17 +40,31 @@ def main():
     game_clock = pygame.time.Clock()
     mouse_pos = pygame.mouse.get_pos()
     mousetilecords()
-    while running:
+    start_menu_running = True
+    game_running = True
+    while start_menu_running:
+        drawstartmenu()
+        mouse_pos = pygame.mouse.get_pos()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game_running, start_menu_running = False, False
+
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if launch_btn.checkmouseover():
+                    start_menu_running = False
+        pygame.display.update()
+
+
+    while game_running:
         drawGrid()
         drawEfects()
         drawMenu()
         mouse_pos = pygame.mouse.get_pos()
         threading.Thread(target=mousetilecords).start()
-        drawactivebombtext()
         # event handling, gets all event from the event queue
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                game_running = False
             
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 bomb1_btn.check_execute()
@@ -72,29 +87,6 @@ def main():
         game_clock.tick(FPS)
         pygame.display.update()
 
-def drawGrid():
-    '''Used to draw base grid before effects'''
-    for x in range(MENU_WIDTH, WINDOW_WIDTH, tile_size):
-        for y in range(0, WINDOW_HEIGHT, tile_size):
-            rect = pygame.Rect(x, y, tile_size, tile_size)
-            pygame.draw.rect(screen, (102, 102, 102), rect)
-            pygame.draw.rect(screen, (255,255,255), rect, 1)
-
-def drawMenu():
-    global bomb1_btn, bomb2_btn, bomb3_btn, explode_btn
-    pygame.draw.rect(screen, strtoRGB('black'), pygame.Rect(0, 0, MENU_WIDTH, WINDOW_HEIGHT))
-    bomb1_btn = BombButton(20, 30, 100, 50,'10kT', kt10)
-    bomb2_btn = BombButton(20, 90, 100, 50,'50kT', kt50)
-    bomb3_btn = BombButton(20, 150, 100, 50,'100kT', kt100)
-    explode_btn = Button('red', 10, WINDOW_HEIGHT -100, 150, 50, 'EXPLODE!', pygame.font.SysFont('Bahnschrift SemiBold', 30),'black',[ 'white',3, 4], instaDraw=True)
-
-def drawactivebombtext():
-    font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
-    font_color = strtoRGB('white')
-    ftext = font.render(active_bomb_text, True, font_color)
-    pygame.draw.rect(screen, (0,0,0), [0, WINDOW_HEIGHT-30, 190, 30])
-    screen.blit(ftext, (20, WINDOW_HEIGHT - 20))
-
 def strtoRGB(colorStr: str) -> tuple:
     if type(colorStr) == str: 
         colorStr = colorStr.lower()
@@ -116,6 +108,22 @@ def strtoRGB(colorStr: str) -> tuple:
             case(_):
                 raise ValueError(f"Color str:{colorStr} doesn't exist!")
     return colorStr
+
+def center(item_width: float | int = 0, item_height: float | int = 0, parent_width: float | int = 0, parent_height: float | int = 0, center_direction: typing.Literal["horizontal", "vertical", "both"] = "both"):
+    def horizontal():
+        return ((parent_width - item_width) / 2)
+    def vertical():
+        return ((parent_height - item_height) / 2)
+    
+    match(center_direction):
+        case("horizontal"):
+            return horizontal()
+        case("vertical"):
+            return vertical()
+        case("both"):
+            return (horizontal(), vertical())
+        case(_):
+            raise ValueError(f"{center_direction} is an invalid value for center_direction")
 
 def cordsconvert(cord: set | list | tuple, to_normal: bool = False):
     '''If to_normal is False will convert given cordinates to tile-cords. Else will do in reverse. Reade notes on reverse.'''
@@ -159,23 +167,6 @@ def mousetilecords() -> None:
     mouse_tile_cords = cordsconvert(mouse_pos)
     tile_cord_x, tile_cord_y = mouse_tile_cords
 
-def drawEfects():
-    #hover efect
-    if mouse_pos[0] > MENU_WIDTH:
-        hover_Surface = pygame.Surface((tile_size, tile_size))
-        hover_Surface.set_alpha(128)
-        hover_Surface.fill((255,0,0))
-        blit_x, blit_y = cordsconvert(mouse_tile_cords, True)
-        screen.blit(hover_Surface,(blit_x, blit_y))
-    #clicked efects
-    for key, value in Bomb.instances.items():
-        eval(key).draw()
-    #explosions of bombs
-    current_time = time.time()
-    for key, value in Bomb.instances.items():
-        explode_func = getattr(eval(key), "explode")
-        explode_func(current_time)
-   
 def selecttiles():
     '''Takes care of the selecting of tiles and addding/removing them to/from the selected_tiles set and the apropriate bomb set'''
     global selection
@@ -204,6 +195,73 @@ def selecttiles():
                 selected_tiles.add((x, y))
                 active_bomb.tiles.add((x,y))
 
+def drawstartmenu():
+    global launch_btn
+    menu_btn_font = pygame.font.SysFont("Cooper Black", 40)
+    menu_btn_color = (102, 153, 153)
+
+    launch_btn_size = (300, 50)
+    launch_btn_location = center(launch_btn_size[0], launch_btn_size[1], WINDOW_WIDTH, WINDOW_HEIGHT, "both")
+    launch_btn = Button(menu_btn_color, launch_btn_location[0], launch_btn_location[1], launch_btn_size[0], launch_btn_size[1], "Launch!", menu_btn_font,"white", instaDraw=True)
+
+    mapselect_btn_size = launch_btn_size
+    mapselect_btn_location = (launch_btn_location[0], launch_btn_location[1] + 80)
+    mapselect_btn = Button(menu_btn_color, mapselect_btn_location[0], mapselect_btn_location[1], mapselect_btn_size[0], mapselect_btn_size[1], "Map selection", menu_btn_font, "white", instaDraw=True)
+
+def drawGrid():
+    '''Used to draw base grid before effects'''
+    for x in range(MENU_WIDTH, WINDOW_WIDTH, tile_size):
+        for y in range(0, WINDOW_HEIGHT, tile_size):
+            rect = pygame.Rect(x, y, tile_size, tile_size)
+            pygame.draw.rect(screen, (102, 102, 102), rect)
+            pygame.draw.rect(screen, (255,255,255), rect, 1)
+
+def drawMenu():
+    global bomb1_btn, bomb2_btn, bomb3_btn, explode_btn
+    pygame.draw.rect(screen, strtoRGB('black'), pygame.Rect(0, 0, MENU_WIDTH, WINDOW_HEIGHT))
+    bomb1_btn = BombButton(20, 30, 100, 50,'10kT', kt10)
+    bomb2_btn = BombButton(20, 90, 100, 50,'50kT', kt50)
+    bomb3_btn = BombButton(20, 150, 100, 50,'100kT', kt100)
+    explode_btn = Button('red', 10, WINDOW_HEIGHT -100, 150, 50, 'EXPLODE!', pygame.font.SysFont('Bahnschrift SemiBold', 30),'black',[ 'white',3, 4], instaDraw=True)
+    # draw active-bomb text
+    active_bomb_font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
+    active_bomb_font_color = strtoRGB('white')
+    active_bomb_ftext = active_bomb_font.render(active_bomb_text, True, active_bomb_font_color)
+    pygame.draw.rect(screen, (0,0,0), [0, WINDOW_HEIGHT-30, 190, 30])
+    screen.blit(active_bomb_ftext, (20, WINDOW_HEIGHT - 20))
+    # draw score text
+    total_score_font = active_bomb_font
+    total_score_font_color = active_bomb_font_color
+    total_score_ftext = total_score_font.render(f"Score:{total_score}", True, total_score_font_color)
+    pygame.draw.rect(screen, (0,0,0), [0, WINDOW_HEIGHT - 200, 190, 30])
+    screen.blit(total_score_ftext, (20, WINDOW_HEIGHT - 200))
+
+def drawEfects():
+    #hover efect
+    if mouse_pos[0] > MENU_WIDTH:
+        hover_Surface = pygame.Surface((tile_size, tile_size))
+        hover_Surface.set_alpha(128)
+        hover_Surface.fill((255,0,0))
+        blit_x, blit_y = cordsconvert(mouse_tile_cords, True)
+        screen.blit(hover_Surface,(blit_x, blit_y))
+    #clicked efects
+    for key, value in Bomb.instances.items():
+        eval(key).draw()
+    #explosions of bombs
+    current_time = time.time()
+    for key, value in Bomb.instances.items():
+        explode_func = getattr(eval(key), "explode")
+        explode_func(current_time)
+
+def register_score_parameter(value: int, name, group = False):
+    value = round(value)
+    score_types[name] = [value]
+
+def calculate_total_score():
+    score = 0
+    for key, value in score_types.items():
+        score += value[0]
+ 
 class Bomb(abc.ABC):
     instances = {}
     '''This is the abc that all bombs should inherit from'''
@@ -242,7 +300,8 @@ class ConventionalBomb(Bomb):
         elif type(self.tile_icon) == pygame.Surface:
             for loc in self.tiles:
                 real_loc = cordsconvert(loc, True)
-                screen.blit(self.tile_icon, (real_loc[0], real_loc[1]))
+                tile_icon_scaled = pygame.transform.scale(self.tile_icon, (tile_size, tile_size))
+                screen.blit(tile_icon_scaled, (real_loc[0], real_loc[1]))
         else:
             raise TypeError(f"Invalid type '{type(self.tile_icon)}' for self.tile_icon")
 
@@ -251,7 +310,7 @@ class ConventionalBomb(Bomb):
             return None
         for loc in self.tiles:
             real_loc = cordsconvert(loc, True)
-            Exp_rect = pygame.Rect(real_loc[0]-self.radius, real_loc[1]-self.radius,(self.radius*2)+1*tile_size,(self.radius*2)+1*tile_size) 
+            Exp_rect = pygame.Rect(real_loc[0]-self.radius, real_loc[1]-self.radius,(self.radius*2)+1*tile_size,(self.radius*2)+1*tile_size)
             pygame.draw.rect(screen, strtoRGB('explosionorange'), Exp_rect)
         
 class Button():
@@ -305,6 +364,7 @@ class BombButton(Button):
     def check_execute(self):
         if super().checkmouseover():
             self.onclick()
+
 
 if __name__=="__main__":
     main()
