@@ -1,4 +1,5 @@
 import pygame
+import pygame_widgets as pyw
 
 import threading
 import abc
@@ -25,7 +26,7 @@ def main():
     pygame.init()
     pygame.display.set_caption("Bomb It!")
      
-    screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.RESIZABLE)
     # Bombs
     kt10_img = pygame.image.load(os.path.join(SELF_LOC, "resources\\bomb_icons\\conventional\\test.png")).convert()
     kt10  = ConventionalBomb(0, 3,kt10_img, "kt10", "G-kt10")
