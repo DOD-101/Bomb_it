@@ -11,8 +11,8 @@ from colorama import Fore, init
 init()
 
 SELF_LOC = os.path.dirname(os.path.realpath(__file__))
-WINDOW_HEIGHT = 1000
-WINDOW_WIDTH = WINDOW_HEIGHT
+window_w = 1000
+window_h = 300
 MENU_WIDTH = 200
 tile_size = 20
 selected_tiles = set()
@@ -22,11 +22,12 @@ score_types = {}
 total_score = 100
 # define a main function
 def main():
-    global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time
+    global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, window_w, window_h
     pygame.init()
     pygame.display.set_caption("Bomb It!")
      
-    screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.RESIZABLE)
+    screen = pygame.Surface((window_w, window_h))
+    rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
     # Bombs
     kt10_img = pygame.image.load(os.path.join(SELF_LOC, "resources\\bomb_icons\\conventional\\test.png")).convert()
     kt10  = ConventionalBomb(0, 3,kt10_img, "kt10", "G-kt10")
@@ -53,7 +54,13 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if launch_btn.checkmouseover():
                     start_menu_running = False
-        pygame.display.update()
+            
+            if event.type == pygame.VIDEORESIZE:
+                onwindowscale(event)
+                continue
+
+        rscreen.blit(screen, (0,0))
+        pygame.display.flip()
 
 
     while game_running:
@@ -84,9 +91,22 @@ def main():
                 selecting = False
                 selection.append((tile_cord_x, tile_cord_y))
                 selecttiles()
-        
+
+            if event.type == pygame.VIDEORESIZE:
+                onwindowscale(event)
+                continue
+
+        rscreen.blit(screen, (0,0))
+        pygame.display.flip()
+
         game_clock.tick(FPS)
-        pygame.display.update()
+
+def onwindowscale(event):
+    global screen, rscreen, window_w, window_h
+    window_w, window_h = event.size
+    rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
+    screen = pygame.transform.scale(screen, (window_w, window_h))
+    screen.fill((0,0,0))
 
 def strtoRGB(colorStr: str) -> tuple:
     if type(colorStr) == str: 
@@ -163,7 +183,7 @@ def mousetilecords() -> None:
     '''Gets the position of the mouse and converts it to tile-cordinates'''
     global tile_cord_x, tile_cord_y, mouse_pos, mouse_tile_cords
     if mouse_pos[0] < MENU_WIDTH:
-        return None
+        mouse_tile_cords = [0,0]
     mouse_pos = pygame.mouse.get_pos()
     mouse_tile_cords = cordsconvert(mouse_pos)
     tile_cord_x, tile_cord_y = mouse_tile_cords
@@ -202,7 +222,7 @@ def drawstartmenu():
     menu_btn_color = (102, 153, 153)
 
     launch_btn_size = (300, 50)
-    launch_btn_location = center(launch_btn_size[0], launch_btn_size[1], WINDOW_WIDTH, WINDOW_HEIGHT, "both")
+    launch_btn_location = center(launch_btn_size[0], launch_btn_size[1], window_w, window_h, "both")
     launch_btn = Button(menu_btn_color, launch_btn_location[0], launch_btn_location[1], launch_btn_size[0], launch_btn_size[1], "Launch!", menu_btn_font,"white", instaDraw=True)
 
     mapselect_btn_size = launch_btn_size
@@ -211,31 +231,31 @@ def drawstartmenu():
 
 def drawGrid():
     '''Used to draw base grid before effects'''
-    for x in range(MENU_WIDTH, WINDOW_WIDTH, tile_size):
-        for y in range(0, WINDOW_HEIGHT, tile_size):
+    for x in range(MENU_WIDTH, window_w, tile_size):
+        for y in range(0, window_h, tile_size):
             rect = pygame.Rect(x, y, tile_size, tile_size)
             pygame.draw.rect(screen, (102, 102, 102), rect)
             pygame.draw.rect(screen, (255,255,255), rect, 1)
 
 def drawMenu():
     global bomb1_btn, bomb2_btn, bomb3_btn, explode_btn
-    pygame.draw.rect(screen, strtoRGB('black'), pygame.Rect(0, 0, MENU_WIDTH, WINDOW_HEIGHT))
+    pygame.draw.rect(screen, strtoRGB('black'), pygame.Rect(0, 0, MENU_WIDTH, window_h))
     bomb1_btn = BombButton(20, 30, 100, 50,'10kT', kt10)
     bomb2_btn = BombButton(20, 90, 100, 50,'50kT', kt50)
     bomb3_btn = BombButton(20, 150, 100, 50,'100kT', kt100)
-    explode_btn = Button('red', 10, WINDOW_HEIGHT -100, 150, 50, 'EXPLODE!', pygame.font.SysFont('Bahnschrift SemiBold', 30),'black',[ 'white',3, 4], instaDraw=True)
+    explode_btn = Button('red', 10, window_h -100, 150, 50, 'EXPLODE!', pygame.font.SysFont('Bahnschrift SemiBold', 30),'black',[ 'white',3, 4], instaDraw=True)
     # draw active-bomb text
     active_bomb_font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
     active_bomb_font_color = strtoRGB('white')
     active_bomb_ftext = active_bomb_font.render(active_bomb_text, True, active_bomb_font_color)
-    pygame.draw.rect(screen, (0,0,0), [0, WINDOW_HEIGHT-30, 190, 30])
-    screen.blit(active_bomb_ftext, (20, WINDOW_HEIGHT - 20))
+    pygame.draw.rect(screen, (0,0,0), [0, window_h-30, 190, 30])
+    screen.blit(active_bomb_ftext, (20, window_h - 20))
     # draw score text
     total_score_font = active_bomb_font
     total_score_font_color = active_bomb_font_color
     total_score_ftext = total_score_font.render(f"Score:{total_score}", True, total_score_font_color)
-    pygame.draw.rect(screen, (0,0,0), [0, WINDOW_HEIGHT - 200, 190, 30])
-    screen.blit(total_score_ftext, (20, WINDOW_HEIGHT - 200))
+    pygame.draw.rect(screen, (0,0,0), [0, window_h - 200, 190, 30])
+    screen.blit(total_score_ftext, (20, window_h - 200))
 
 def drawEfects():
     #hover efect
