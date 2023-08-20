@@ -6,15 +6,16 @@ import abc
 import time
 import os
 import typing
+import math
 
 from colorama import Fore, init
+from PIL import Image
 init()
 
 SELF_LOC = os.path.dirname(os.path.realpath(__file__))
 window_w = 1000
 window_h = 300
 MENU_WIDTH = 200
-tile_size = 20
 selected_tiles = set()
 explode_time = 1
 FPS = 60
@@ -25,7 +26,9 @@ def main():
     global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, window_w, window_h
     pygame.init()
     pygame.display.set_caption("Bomb It!")
-     
+
+    gettilesize() #!!TEMP
+
     screen = pygame.Surface((window_w, window_h))
     rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
     # Bombs
@@ -64,6 +67,7 @@ def main():
 
 
     while game_running:
+        gettilesize()
         drawGrid()
         drawEfects()
         drawMenu()
@@ -98,7 +102,7 @@ def main():
 
         rscreen.blit(screen, (0,0))
         pygame.display.flip()
-
+        
         game_clock.tick(FPS)
 
 def onwindowscale(event):
@@ -107,6 +111,20 @@ def onwindowscale(event):
     rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
     screen = pygame.transform.scale(screen, (window_w, window_h))
     screen.fill((0,0,0))
+    
+    gettilesize()
+    print(tile_size)
+
+def gettilesize():
+    global tile_size
+    immap = Image.open("resources\maps\map0.png")
+    pxmap = immap.load()
+    if window_w - MENU_WIDTH >= window_h:
+        tile_size = window_h / immap.size[1]
+    else:
+        tile_size = window_w / immap.size[0]
+    
+    tile_size = int(tile_size)
 
 def strtoRGB(colorStr: str) -> tuple:
     if type(colorStr) == str: 
@@ -147,7 +165,7 @@ def center(item_width: float | int = 0, item_height: float | int = 0, parent_wid
             raise ValueError(f"{center_direction} is an invalid value for center_direction")
 
 def cordsconvert(cord: set | list | tuple, to_normal: bool = False):
-    '''If to_normal is False will convert given cordinates to tile-cords. Else will do in reverse. Reade notes on reverse.'''
+    '''If to_normal is False will convert given cordinates to tile-cords. Else will do in reverse. Read notes on reverse.'''
     new_cord = type(cord)
     if to_normal == True:
         '''Does not give exact location of mouse, but rather starting location of tile (aka. top left corner). Unless provided tile cords are acurrate floates.'''
@@ -165,11 +183,11 @@ def cordsconvert(cord: set | list | tuple, to_normal: bool = False):
     elif to_normal == False:
         if type(cord) == set or type(cord) == list:
             for c in cord:
-                c[0] = int(c[0] / tile_size) - int(MENU_WIDTH / tile_size)
+                c[0] = int((c[0] - MENU_WIDTH) / tile_size)
                 c[1] =  int(c[1] / tile_size)
                 new_cord.add(c)
         elif type(cord) == tuple:
-            x = int(cord[0] / tile_size) - int(MENU_WIDTH / tile_size)
+            x = int((cord[0] - MENU_WIDTH) / tile_size)
             y = int(cord[1] / tile_size)
             new_cord = tuple([x,y])
         else:
@@ -231,11 +249,17 @@ def drawstartmenu():
 
 def drawGrid():
     '''Used to draw base grid before effects'''
-    for x in range(MENU_WIDTH, window_w, tile_size):
-        for y in range(0, window_h, tile_size):
+    immap = Image.open("resources\maps\map0.png")
+    pxmap = immap.load()
+    pix_x, pix_y = 0,0
+    for x in range(MENU_WIDTH, immap.size[0]*tile_size + MENU_WIDTH, tile_size):
+        for y in range(0, immap.size[1]*tile_size, tile_size):
             rect = pygame.Rect(x, y, tile_size, tile_size)
-            pygame.draw.rect(screen, (102, 102, 102), rect)
+            pygame.draw.rect(screen, pxmap[pix_x,pix_y], rect)
             pygame.draw.rect(screen, (255,255,255), rect, 1)
+            pix_y += 1
+        pix_x += 1
+        pix_y = 0
 
 def drawMenu():
     global bomb1_btn, bomb2_btn, bomb3_btn, explode_btn

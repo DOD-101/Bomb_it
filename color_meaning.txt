@@ -1,0 +1,6 @@
+-grass (0, 255, 0)
+-water (0, 0, 255)
+-house  (255, 0, 255)
+-industry (255, 0, 0)
+-street (0,0,0)
+-railway (255, 255, 0)
