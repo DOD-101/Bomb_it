@@ -16,7 +16,7 @@ def center(item_width: float | int = 0, item_height: float | int = 0, parent_wid
         case(_):
             raise ValueError(f"{center_direction} is an invalid value for center_direction")
         
-def strtoRGB(colorStr: str) -> tuple:
+def strToRGB(colorStr: str) -> tuple:
     if type(colorStr) == str: 
         colorStr = colorStr.lower()
         match(colorStr):

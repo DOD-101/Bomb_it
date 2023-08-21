@@ -13,9 +13,9 @@ from PIL import Image
 init()
 
 SELF_LOC = os.path.dirname(os.path.realpath(__file__))
+MENU_WIDTH = 200
 window_w = 1000
 window_h = 300
-MENU_WIDTH = 200
 selected_tiles = set()
 explode_time = 1
 FPS = 60
@@ -27,14 +27,14 @@ pxmap = immap.load()
 
 from utils import utils
 center = utils.center
-strtoRGB = utils.strtoRGB
+strtoRGB = utils.strToRGB
 
 def main():
     global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, window_w, window_h, grid_start
     pygame.init()
     pygame.display.set_caption("Bomb It!")
 
-    gettilesize() #!!TEMP
+    getTileSize() #!!TEMP
     grid_start = window_w - immap.size[0] * tile_size
     screen = pygame.Surface((window_w, window_h))
     rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
@@ -51,78 +51,79 @@ def main():
     selecting = False
     game_clock = pygame.time.Clock()
     mouse_pos = pygame.mouse.get_pos()
-    mousetilecords()
-    start_menu_running = True
-    game_running = True
-    while start_menu_running:
-        drawstartmenu()
-        mouse_pos = pygame.mouse.get_pos()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                game_running, start_menu_running = False, False
+    mouseTilecords()
+    app_running = start_menu_running = game_running = True
+    map_select = False
+    while app_running:
+        while start_menu_running:
+            drawStartMenu()
+            mouse_pos = pygame.mouse.get_pos()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    app_running = game_running = start_menu_running = False
 
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if launch_btn.checkmouseover():
-                    start_menu_running = False
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if launch_btn.checkmouseover():
+                        start_menu_running = False
 
-            if event.type == pygame.VIDEORESIZE:
-                onwindowscale(event)
-                continue
+                if event.type == pygame.VIDEORESIZE:
+                    onWindowScale(event)
+                    continue
 
-        rscreen.blit(screen, (0,0))
-        pygame.display.flip()
+            rscreen.blit(screen, (0,0))
+            pygame.display.flip()
 
 
-    while game_running:
-        screen.fill((0,0,0))
-        drawGrid()
-        drawEfects()
-        drawMenu()
-        mouse_pos = pygame.mouse.get_pos()
-        threading.Thread(target=mousetilecords).start()
-        # event handling, gets all events from the event queue
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                game_running = False
+        while game_running:
+            screen.fill((0,0,0))
+            drawGrid()
+            drawEfects()
+            drawMenu()
+            mouse_pos = pygame.mouse.get_pos()
+            threading.Thread(target=mouseTilecords).start()
+            # event handling, gets all events from the event queue
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    app_running = game_running = start_menu_running = False
 
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                bomb1_btn.check_execute()
-                bomb2_btn.check_execute()
-                bomb3_btn.check_execute()
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    bomb1_btn.checkAndExecute()
+                    bomb2_btn.checkAndExecute()
+                    bomb3_btn.checkAndExecute()
 
-                if explode_btn.checkmouseover():
-                    explode_time = time.time()
+                    if explode_btn.checkmouseover():
+                        explode_time = time.time()
 
-                if mouse_pos[0] > MENU_WIDTH and selecting == False:
-                    selecting = True
-                    selection = list()
+                    if mouse_pos[0] > MENU_WIDTH and selecting == False:
+                        selecting = True
+                        selection = list()
+                        selection.append((tile_cord_x, tile_cord_y))
+
+                if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and selecting == True:
+                    selecting = False
                     selection.append((tile_cord_x, tile_cord_y))
+                    selectTiles()
 
-            if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and selecting == True:
-                selecting = False
-                selection.append((tile_cord_x, tile_cord_y))
-                selecttiles()
+                if event.type == pygame.VIDEORESIZE:
+                    onWindowScale(event)
+                    continue
 
-            if event.type == pygame.VIDEORESIZE:
-                onwindowscale(event)
-                continue
+            rscreen.blit(screen, (0,0))
+            pygame.display.flip()
 
-        rscreen.blit(screen, (0,0))
-        pygame.display.flip()
+            game_clock.tick(FPS)
 
-        game_clock.tick(FPS)
-
-def onwindowscale(event):
+def onWindowScale(event):
     global screen, rscreen, window_w, window_h, grid_start
     window_w, window_h = event.size
     rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
     screen = pygame.transform.scale(screen, (window_w, window_h))
     screen.fill((0,0,0))
 
-    gettilesize()
+    getTileSize()
     grid_start = window_w - immap.size[0] * tile_size
 
-def gettilesize():
+def getTileSize():
     global tile_size
     immap = Image.open("resources\maps\map0.png")
     pxmap = immap.load()
@@ -133,7 +134,7 @@ def gettilesize():
 
     tile_size = int(tile_size)
 
-def cordsconvert(cord: set | list | tuple, to_normal: bool = False):
+def cordsConvert(cord: set | list | tuple, to_normal: bool = False):
     '''If to_normal is False will convert given cordinates to tile-cords. Else will do in reverse. Read notes on reverse.'''
     new_cord = type(cord)
     if to_normal == True:
@@ -166,16 +167,16 @@ def cordsconvert(cord: set | list | tuple, to_normal: bool = False):
 
     return new_cord
 
-def mousetilecords() -> None:
+def mouseTilecords() -> None:
     '''Gets the position of the mouse and converts it to tile-cordinates'''
     global tile_cord_x, tile_cord_y, mouse_pos, mouse_tile_cords
     if mouse_pos[0] < MENU_WIDTH:
         mouse_tile_cords = [0,0]
     mouse_pos = pygame.mouse.get_pos()
-    mouse_tile_cords = cordsconvert(mouse_pos)
+    mouse_tile_cords = cordsConvert(mouse_pos)
     tile_cord_x, tile_cord_y = mouse_tile_cords
 
-def selecttiles():
+def selectTiles():
     '''Takes care of the selecting of tiles and addding/removing them to/from the selected_tiles set and the apropriate bomb set'''
     global selection
     pos1, pos2 = selection
@@ -187,7 +188,7 @@ def selecttiles():
         y1, y2 = y2, y1
 
 
-    if cordsconvert((x1,y1), True)[0] < grid_start:
+    if cordsConvert((x1,y1), True)[0] < grid_start:
         return None
     for x in range((x1 - x2)+1):
         x += x2
@@ -206,7 +207,7 @@ def selecttiles():
                 selected_tiles.add((x, y))
                 active_bomb.tiles.add((x,y))
 
-def drawstartmenu():
+def drawStartMenu():
     global launch_btn
     menu_btn_font = pygame.font.SysFont("Cooper Black", 40)
     menu_btn_color = (102, 153, 153)
@@ -260,7 +261,7 @@ def drawEfects():
         hover_Surface = pygame.Surface((tile_size, tile_size))
         hover_Surface.set_alpha(128)
         hover_Surface.fill((255,0,0))
-        blit_x, blit_y = cordsconvert(mouse_tile_cords, True)
+        blit_x, blit_y = cordsConvert(mouse_tile_cords, True)
         screen.blit(hover_Surface,(blit_x, blit_y))
     #clicked efects
     for key, value in Bomb.instances.items():
@@ -271,11 +272,11 @@ def drawEfects():
         explode_func = getattr(eval(key), "explode")
         explode_func(current_time)
 
-def register_score_parameter(value: int, name, group = False):
+def registerScoreParameter(value: int, name, group = False):
     value = round(value)
     score_types[name] = [value]
 
-def calculate_total_score():
+def calculateTotalScore():
     score = 0
     for key, value in score_types.items():
         score += value[0]
@@ -312,12 +313,12 @@ class ConventionalBomb(Bomb):
     def draw(self):
         if type(self.tile_icon) == tuple:
             for loc in self.tiles:
-                real_loc = cordsconvert(loc, True)
+                real_loc = cordsConvert(loc, True)
                 rect = pygame.Rect(real_loc[0], real_loc[1], tile_size, tile_size)
                 pygame.draw.rect(screen, self.tile_icon, rect)
         elif type(self.tile_icon) == pygame.Surface:
             for loc in self.tiles:
-                real_loc = cordsconvert(loc, True)
+                real_loc = cordsConvert(loc, True)
                 tile_icon_scaled = pygame.transform.scale(self.tile_icon, (tile_size, tile_size))
                 screen.blit(tile_icon_scaled, (real_loc[0], real_loc[1]))
         else:
@@ -327,7 +328,7 @@ class ConventionalBomb(Bomb):
         if not current_t - self.explode_duration <= explode_time:
             return None
         for loc in self.tiles:
-            real_loc = cordsconvert(loc, True)
+            real_loc = cordsConvert(loc, True)
             Exp_rect = pygame.Rect(real_loc[0]-self.radius*tile_size, real_loc[1]-self.radius*tile_size,(self.radius*tile_size*2)+1*tile_size,(self.radius*tile_size*2)+1*tile_size)
             pygame.draw.rect(screen, strtoRGB('explosionorange'), Exp_rect)
 
@@ -377,12 +378,9 @@ class BombButton(Button):
         active_bomb_text = self.text
         active_bomb = self.bombinstance
 
-
-
-    def check_execute(self):
+    def checkAndExecute(self):
         if super().checkmouseover():
             self.onclick()
-
 
 if __name__=="__main__":
     main()
