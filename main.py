@@ -21,20 +21,24 @@ explode_time = 1
 FPS = 60
 score_types = {}
 total_score = 100
-# define a main function
+
+immap = Image.open("resources\maps\map0.png")
+pxmap = immap.load()
+
+
 def main():
-    global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, window_w, window_h
+    global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, window_w, window_h, grid_start
     pygame.init()
     pygame.display.set_caption("Bomb It!")
 
-    gettilesize() #!!TEMP
-
+    gettilesize() #!!TEMP    
+    grid_start = window_w - immap.size[0] * tile_size
     screen = pygame.Surface((window_w, window_h))
     rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
     # Bombs
     kt10_img = pygame.image.load(os.path.join(SELF_LOC, "resources\\bomb_icons\\conventional\\test.png")).convert()
     kt10  = ConventionalBomb(0, 3,kt10_img, "kt10", "G-kt10")
-    kt50  = ConventionalBomb(5, 3,(255, 102, 255), "kt50", "G-kt50")
+    kt50  = ConventionalBomb(2, 3,(255, 102, 255), "kt50", "G-kt50")
     kt100 = ConventionalBomb(10, 3,(102, 255, 102), "kt100", "G-kt100")
 
     #-----
@@ -67,13 +71,13 @@ def main():
 
 
     while game_running:
-        gettilesize()
+        screen.fill((0,0,0))
         drawGrid()
         drawEfects()
         drawMenu()
         mouse_pos = pygame.mouse.get_pos()
         threading.Thread(target=mousetilecords).start()
-        # event handling, gets all event from the event queue
+        # event handling, gets all events from the event queue
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_running = False
@@ -106,14 +110,14 @@ def main():
         game_clock.tick(FPS)
 
 def onwindowscale(event):
-    global screen, rscreen, window_w, window_h
+    global screen, rscreen, window_w, window_h, grid_start
     window_w, window_h = event.size
     rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
     screen = pygame.transform.scale(screen, (window_w, window_h))
     screen.fill((0,0,0))
-    
+
     gettilesize()
-    print(tile_size)
+    grid_start = window_w - immap.size[0] * tile_size
 
 def gettilesize():
     global tile_size
@@ -171,11 +175,11 @@ def cordsconvert(cord: set | list | tuple, to_normal: bool = False):
         '''Does not give exact location of mouse, but rather starting location of tile (aka. top left corner). Unless provided tile cords are acurrate floates.'''
         if type(cord) == set or type(cord) == list:
             for c in cord:
-                c[0] = (c[0] * tile_size) + MENU_WIDTH
+                c[0] = (c[0] * tile_size) + grid_start
                 c[1] =  c[1] * tile_size
                 new_cord.add(c)
         elif type(cord) == tuple:
-            x = (cord[0] * tile_size) + MENU_WIDTH
+            x = (cord[0] * tile_size) + grid_start
             y = cord[1] * tile_size
             new_cord = tuple([x,y])
         else:
@@ -183,11 +187,11 @@ def cordsconvert(cord: set | list | tuple, to_normal: bool = False):
     elif to_normal == False:
         if type(cord) == set or type(cord) == list:
             for c in cord:
-                c[0] = int((c[0] - MENU_WIDTH) / tile_size)
+                c[0] = int((c[0] - grid_start) / tile_size)
                 c[1] =  int(c[1] / tile_size)
                 new_cord.add(c)
         elif type(cord) == tuple:
-            x = int((cord[0] - MENU_WIDTH) / tile_size)
+            x = int((cord[0] - grid_start) / tile_size)
             y = int(cord[1] / tile_size)
             new_cord = tuple([x,y])
         else:
@@ -216,7 +220,10 @@ def selecttiles():
         x1, x2 = x2, x1
     if y2 > y1:
         y1, y2 = y2, y1
-    
+
+
+    if cordsconvert((x1,y1), True)[0] < grid_start:
+        return None
     for x in range((x1 - x2)+1):
         x += x2 
         for y in range((y1 - y2)+1):
@@ -249,10 +256,11 @@ def drawstartmenu():
 
 def drawGrid():
     '''Used to draw base grid before effects'''
-    immap = Image.open("resources\maps\map0.png")
-    pxmap = immap.load()
+
     pix_x, pix_y = 0,0
-    for x in range(MENU_WIDTH, immap.size[0]*tile_size + MENU_WIDTH, tile_size):
+
+
+    for x in range(grid_start, immap.size[0]*tile_size + grid_start, tile_size):
         for y in range(0, immap.size[1]*tile_size, tile_size):
             rect = pygame.Rect(x, y, tile_size, tile_size)
             pygame.draw.rect(screen, pxmap[pix_x,pix_y], rect)
@@ -283,7 +291,7 @@ def drawMenu():
 
 def drawEfects():
     #hover efect
-    if mouse_pos[0] > MENU_WIDTH:
+    if mouse_pos[0] > grid_start:
         hover_Surface = pygame.Surface((tile_size, tile_size))
         hover_Surface.set_alpha(128)
         hover_Surface.fill((255,0,0))
@@ -313,7 +321,7 @@ class Bomb(abc.ABC):
     def __init__(self, radius, explode_duration, tile_icon: tuple | pygame.Surface, explosion_color, instance_name:str, nickname:str = "No nickname") -> None:
         self.instance_name = instance_name
         self.nickname = nickname
-        self.radius = radius * tile_size
+        self.radius = radius
         if type(tile_icon) == str: 
             self.tile_icon = strtoRGB(tile_icon)
         else:
@@ -355,7 +363,7 @@ class ConventionalBomb(Bomb):
             return None
         for loc in self.tiles:
             real_loc = cordsconvert(loc, True)
-            Exp_rect = pygame.Rect(real_loc[0]-self.radius, real_loc[1]-self.radius,(self.radius*2)+1*tile_size,(self.radius*2)+1*tile_size)
+            Exp_rect = pygame.Rect(real_loc[0]-self.radius*tile_size, real_loc[1]-self.radius*tile_size,(self.radius*tile_size*2)+1*tile_size,(self.radius*tile_size*2)+1*tile_size)
             pygame.draw.rect(screen, strtoRGB('explosionorange'), Exp_rect)
         
 class Button():
