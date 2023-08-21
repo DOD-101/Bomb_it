@@ -25,13 +25,16 @@ total_score = 100
 immap = Image.open("resources\maps\map0.png")
 pxmap = immap.load()
 
+from utils import utils
+center = utils.center
+strtoRGB = utils.strtoRGB
 
 def main():
     global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, window_w, window_h, grid_start
     pygame.init()
     pygame.display.set_caption("Bomb It!")
 
-    gettilesize() #!!TEMP    
+    gettilesize() #!!TEMP
     grid_start = window_w - immap.size[0] * tile_size
     screen = pygame.Surface((window_w, window_h))
     rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
@@ -61,7 +64,7 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if launch_btn.checkmouseover():
                     start_menu_running = False
-            
+
             if event.type == pygame.VIDEORESIZE:
                 onwindowscale(event)
                 continue
@@ -81,20 +84,20 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_running = False
-            
+
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 bomb1_btn.check_execute()
                 bomb2_btn.check_execute()
                 bomb3_btn.check_execute()
-                
+
                 if explode_btn.checkmouseover():
                     explode_time = time.time()
-                
+
                 if mouse_pos[0] > MENU_WIDTH and selecting == False:
                     selecting = True
                     selection = list()
                     selection.append((tile_cord_x, tile_cord_y))
-            
+
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and selecting == True:
                 selecting = False
                 selection.append((tile_cord_x, tile_cord_y))
@@ -106,7 +109,7 @@ def main():
 
         rscreen.blit(screen, (0,0))
         pygame.display.flip()
-        
+
         game_clock.tick(FPS)
 
 def onwindowscale(event):
@@ -127,46 +130,8 @@ def gettilesize():
         tile_size = window_h / immap.size[1]
     else:
         tile_size = window_w / immap.size[0]
-    
+
     tile_size = int(tile_size)
-
-def strtoRGB(colorStr: str) -> tuple:
-    if type(colorStr) == str: 
-        colorStr = colorStr.lower()
-        match(colorStr):
-            case('white'):
-                colorStr = (255,255,255)
-            case('black'):
-                colorStr = (0,0,0)
-            case('red'):
-                colorStr = (255,0,0)
-            case('green'):
-                colorStr = (0,255,0)
-            case('blue'):
-                colorStr = (0,0,255)
-            case('armygreen'):
-                colorStr = (75, 83, 32)
-            case('explosionorange'):
-                colorStr = (255, 102, 0)
-            case(_):
-                raise ValueError(f"Color str:{colorStr} doesn't exist!")
-    return colorStr
-
-def center(item_width: float | int = 0, item_height: float | int = 0, parent_width: float | int = 0, parent_height: float | int = 0, center_direction: typing.Literal["horizontal", "vertical", "both"] = "both"):
-    def horizontal():
-        return ((parent_width - item_width) / 2)
-    def vertical():
-        return ((parent_height - item_height) / 2)
-    
-    match(center_direction):
-        case("horizontal"):
-            return horizontal()
-        case("vertical"):
-            return vertical()
-        case("both"):
-            return (horizontal(), vertical())
-        case(_):
-            raise ValueError(f"{center_direction} is an invalid value for center_direction")
 
 def cordsconvert(cord: set | list | tuple, to_normal: bool = False):
     '''If to_normal is False will convert given cordinates to tile-cords. Else will do in reverse. Read notes on reverse.'''
@@ -225,10 +190,10 @@ def selecttiles():
     if cordsconvert((x1,y1), True)[0] < grid_start:
         return None
     for x in range((x1 - x2)+1):
-        x += x2 
+        x += x2
         for y in range((y1 - y2)+1):
             y += y2
-            if (x,y) in selected_tiles: 
+            if (x,y) in selected_tiles:
                 selected_tiles.remove((x,y))
                 if (x,y) in active_bomb.tiles:
                     active_bomb.tiles.remove((x,y))
@@ -314,7 +279,7 @@ def calculate_total_score():
     score = 0
     for key, value in score_types.items():
         score += value[0]
- 
+
 class Bomb(abc.ABC):
     instances = {}
     '''This is the abc that all bombs should inherit from'''
@@ -322,7 +287,7 @@ class Bomb(abc.ABC):
         self.instance_name = instance_name
         self.nickname = nickname
         self.radius = radius
-        if type(tile_icon) == str: 
+        if type(tile_icon) == str:
             self.tile_icon = strtoRGB(tile_icon)
         else:
             self.tile_icon = tile_icon
@@ -365,7 +330,7 @@ class ConventionalBomb(Bomb):
             real_loc = cordsconvert(loc, True)
             Exp_rect = pygame.Rect(real_loc[0]-self.radius*tile_size, real_loc[1]-self.radius*tile_size,(self.radius*tile_size*2)+1*tile_size,(self.radius*tile_size*2)+1*tile_size)
             pygame.draw.rect(screen, strtoRGB('explosionorange'), Exp_rect)
-        
+
 class Button():
     def __init__(self, color ,x_pos: int, y_pos: int, width:int, height: int, text: str, font, font_color, border: list = None, instaDraw: bool = False) -> None:
         self.color = strtoRGB(color)
@@ -383,7 +348,7 @@ class Button():
 
         if instaDraw == True:
             self.draw()
-    
+
     def draw(self) -> None:
         pygame.draw.rect(screen, self.color, [self.x_pos, self.y_pos, self.width,self.height])
         if hasattr(self, "border"):
@@ -394,7 +359,7 @@ class Button():
         self.text_centered_y = ((self.height - self.text_height) / 2) + self.y_pos
         screen.blit(self.ftext, (self.text_centered_x, self.text_centered_y))
 
-        
+
     def checkmouseover(self) -> bool:
         if self.x_pos <= mouse_pos[0] <= self.x_pos + self.width and self.y_pos <= mouse_pos[1] <= self.y_pos + self.height:
             return True
@@ -406,14 +371,14 @@ class BombButton(Button):
     def __init__(self, x_pos: int, y_pos: int, width: int, height: int, text: str, bombinstance: type[Bomb]) -> None:
         super().__init__('armygreen', x_pos, y_pos, width, height, text,pygame.font.SysFont('Bahnschrift SemiBold', 30),'black', instaDraw=True)
         self.bombinstance = bombinstance
-    
+
     def onclick(self):
         global active_bomb_text, active_bomb
         active_bomb_text = self.text
         active_bomb = self.bombinstance
 
 
-    
+
     def check_execute(self):
         if super().checkmouseover():
             self.onclick()
