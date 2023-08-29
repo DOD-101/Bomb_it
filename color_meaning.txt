@@ -1,6 +1,6 @@
--grass (0, 255, 0)
--water (0, 0, 255)
--house  (255, 0, 255)
--industry (255, 0, 0)
--street (0,0,0)
--railway (255, 255, 0)
+-grass (0, 255, 0) or 00ff00
+-water (0, 0, 255) or 0000ff
+-house  (255, 0, 255) or ff00ff
+-industry (255, 0, 0) or ff0000
+-street (0,0,0) or 000000
+-railway (255, 255, 0) or ffff00

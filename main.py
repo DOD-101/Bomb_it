@@ -7,9 +7,14 @@ import time
 import os
 import typing
 import math
+import re
 
 from colorama import Fore, init
 from PIL import Image
+from utils import utils
+center = utils.center
+strtoRGB = utils.strToRGB
+
 init()
 
 SELF_LOC = os.path.dirname(os.path.realpath(__file__))
@@ -25,12 +30,11 @@ total_score = 100
 immap = Image.open("resources\maps\map0.png")
 pxmap = immap.load()
 
-from utils import utils
-center = utils.center
-strtoRGB = utils.strToRGB
+
+
 
 def main():
-    global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, window_w, window_h, grid_start
+    global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, window_w, window_h, grid_start, map_row_lengh
     pygame.init()
     pygame.display.set_caption("Bomb It!")
 
@@ -53,9 +57,10 @@ def main():
     mouse_pos = pygame.mouse.get_pos()
     mouseTilecords()
     app_running = start_menu_running = game_running = True
-    map_select = False
+    map_select_running = False
     while app_running:
         while start_menu_running:
+            screen.fill((0,0,0))
             drawStartMenu()
             mouse_pos = pygame.mouse.get_pos()
             for event in pygame.event.get():
@@ -64,15 +69,51 @@ def main():
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if launch_btn.checkmouseover():
+                        start_menu_running = map_select_running = False
+                        game_running = True
+                        
+                    
+                    if mapselect_btn.checkmouseover():
                         start_menu_running = False
+                        map_select_running = True
 
                 if event.type == pygame.VIDEORESIZE:
                     onWindowScale(event)
+
                     continue
 
             rscreen.blit(screen, (0,0))
             pygame.display.flip()
 
+        while map_select_running:
+            global map_queue_w
+            map_queue_w = 200
+            map_row_lengh = int((window_w - map_queue_w) / 280)
+            if map_row_lengh == 0: 
+                map_row_lengh = 1
+
+            screen.fill((0,0,0))
+            drawMapSelect()
+            mouse_pos = pygame.mouse.get_pos()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    app_running = game_running = map_select_running = start_menu_running = False
+                
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    for map in mapdict.keys():
+                        mapdict[map].checkANDExecute()
+                    
+                    if back_button.checkmouseover():
+                        game_running = map_select_running = False
+                        start_menu_running = True
+                    
+                if event.type == pygame.VIDEORESIZE:
+                    onWindowScale(event)
+
+                    continue
+            
+            rscreen.blit(screen, (0,0))
+            pygame.display.flip()
 
         while game_running:
             screen.fill((0,0,0))
@@ -208,7 +249,7 @@ def selectTiles():
                 active_bomb.tiles.add((x,y))
 
 def drawStartMenu():
-    global launch_btn
+    global launch_btn, mapselect_btn
     menu_btn_font = pygame.font.SysFont("Cooper Black", 40)
     menu_btn_color = (102, 153, 153)
 
@@ -219,6 +260,20 @@ def drawStartMenu():
     mapselect_btn_size = launch_btn_size
     mapselect_btn_location = (launch_btn_location[0], launch_btn_location[1] + 80)
     mapselect_btn = Button(menu_btn_color, mapselect_btn_location[0], mapselect_btn_location[1], mapselect_btn_size[0], mapselect_btn_size[1], "Map selection", menu_btn_font, "white", instaDraw=True)
+
+def drawMapSelect():
+    global mapdict, map_queue, back_button
+    MapFrame.instance_num = 0
+    MapFrame.row = 0
+    back_button = Button((66, 135, 245), 20, 20, 30, 30, "<-", pygame.font.SysFont('Bahnschrift SemiBold', 30),'black', ["red", 5, 5], instaDraw = True)
+
+    mapdir = os.path.join(SELF_LOC + '/resources/maps')
+    mapdict = {}
+    for map in os.listdir(mapdir):
+        file_ending = re.search(r".*(\..*)$", map).group(1)
+        mapdict[map] = MapFrame((79, 53, 105), os.path.join(mapdir, map), map.removesuffix(file_ending))
+
+    map_queue = []
 
 def drawGrid():
     '''Used to draw base grid before effects'''
@@ -332,8 +387,8 @@ class ConventionalBomb(Bomb):
             Exp_rect = pygame.Rect(real_loc[0]-self.radius*tile_size, real_loc[1]-self.radius*tile_size,(self.radius*tile_size*2)+1*tile_size,(self.radius*tile_size*2)+1*tile_size)
             pygame.draw.rect(screen, strtoRGB('explosionorange'), Exp_rect)
 
-class Button():
-    def __init__(self, color ,x_pos: int, y_pos: int, width:int, height: int, text: str, font, font_color, border: list = None, instaDraw: bool = False) -> None:
+class Button:
+    def __init__(self, color ,x_pos: int, y_pos: int, width:int, height: int, text: str, font, font_color, border: typing.Literal["color","width","radius"]= None, instaDraw: bool = False) -> None:
         self.color = strtoRGB(color)
         self.x_pos = x_pos
         self.y_pos = y_pos
@@ -360,7 +415,6 @@ class Button():
         self.text_centered_y = ((self.height - self.text_height) / 2) + self.y_pos
         screen.blit(self.ftext, (self.text_centered_x, self.text_centered_y))
 
-
     def checkmouseover(self) -> bool:
         if self.x_pos <= mouse_pos[0] <= self.x_pos + self.width and self.y_pos <= mouse_pos[1] <= self.y_pos + self.height:
             return True
@@ -382,5 +436,48 @@ class BombButton(Button):
         if super().checkmouseover():
             self.onclick()
 
+class MapFrame:
+    row = 0
+    instance_num = 0
+    def __init__(self, frame_color, map_path: str, instance_name) -> None:
+        MapFrame.instance_num += 1
+        self.size = 200
+        self.instance_name = instance_name
+        self.x_pos, self.y_pos= self._get_pos()
+        self.frame_color = strtoRGB(frame_color)
+        self.map_path = map_path
+        
+        self.draw()
+    
+    def _get_pos(self):
+        instance_num = MapFrame.instance_num
+        row = 0
+        while instance_num > map_row_lengh:
+            instance_num -= map_row_lengh
+            row += 1    
+            
+        cords = [instance_num, row]
+        converted_cords = [map_queue_w + 20 + (20 + self.size) * cords[0], 20 + (20 + self.size) * cords[1]]
+        return converted_cords
+
+    def draw(self):
+        frame = pygame.Rect(self.x_pos, self.y_pos, self.size, self.size)
+        map_preview = pygame.image.load(self.map_path)
+        map_preview = pygame.transform.scale(map_preview, (160, 160))
+        pygame.draw.rect(screen, self.frame_color, frame)
+        screen.blit(map_preview, (self.x_pos + 20, self.y_pos + 20))
+    
+    def checkmouseover(self) -> bool:
+        if self.x_pos <= mouse_pos[0] <= self.x_pos + self.size and self.y_pos <= mouse_pos[1] <= self.y_pos + self.size:
+            return True
+        else:
+            return None
+
+    def onclick(self):
+        map_queue.append(self.instance_name)
+
+    def checkANDExecute(self) -> None:
+        if self.checkmouseover() == True:
+            self.onclick()
 if __name__=="__main__":
     main()
