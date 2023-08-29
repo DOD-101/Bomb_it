@@ -33,11 +33,12 @@ pxmap = immap.load()
 
 
 
-
 def main():
-    global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, window_w, window_h, grid_start, map_row_lengh, map_queue, map_queue_x_buttons_dict
+    global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, \
+          window_w, window_h, grid_start, map_row_lengh, map_queue, map_queue_x_buttons_dict, standard_font
     pygame.init()
     pygame.display.set_caption("Bomb It!")
+    standard_font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
 
     getTileSize() #!!TEMP
     grid_start = window_w - immap.size[0] * tile_size
@@ -103,6 +104,11 @@ def main():
                     app_running = game_running = map_select_running = start_menu_running = False
                 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if map_launch_btn.checkmouseover():
+                        map_select_running = start_menu_running = False
+                        game_running = True
+                        break
+
                     for map in mapdict.keys():
                         mapdict[map].checkANDExecute()
 
@@ -269,7 +275,7 @@ def drawStartMenu():
     mapselect_btn = Button(menu_btn_color, mapselect_btn_location[0], mapselect_btn_location[1], mapselect_btn_size[0], mapselect_btn_size[1], "Map selection", menu_btn_font, "white", instaDraw=True)
 
 def drawMapSelect():
-    global mapdict, map_queue, back_button, map_queue_x_buttons_dict
+    global mapdict, map_queue, back_button, map_queue_x_buttons_dict, map_launch_btn
 
     MapFrame.instance_num = 0
     MapFrame.row = 0
@@ -288,7 +294,7 @@ def drawMapSelect():
     map_queue_element_height = 50
     def draw_map_queue_element(top_y: int, mapname: str):
         pygame.draw.rect(screen, strtoRGB("white"), [5, top_y, map_queue_w - 10, map_queue_element_height], 1)
-        mapname_text_font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
+        mapname_text_font = standard_font
         mapname_text = mapname.rpartition('_')[0]
         mapname_ftext = mapname_text_font.render(mapname_text, True, (255, 255, 255))
         mapname_width, mapname_height = mapname_ftext.get_size()
@@ -296,7 +302,7 @@ def drawMapSelect():
         screen.blit(mapname_ftext, [10, mapname_y])
 
         # X button
-        x_text_font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
+        x_text_font = standard_font
         x_ftext = x_text_font.render("x", True, (255,255,255))
         x_ftext_width, x_ftext_height = x_ftext.get_size()
         x_ftext_y =  top_y + center(item_height = x_ftext_height, parent_height = 50, center_direction = "vertical")
@@ -309,6 +315,10 @@ def drawMapSelect():
         draw_map_queue_element(top_y, map)
         top_y += map_queue_element_height + 5
     #endregion
+
+    map_launch_btn_size = (190, 50)
+    map_launch_btn_x, map_launch_btn_y = center(item_width = map_launch_btn_size[0], parent_width = map_queue_w, center_direction="horizontal"), window_h - map_launch_btn_size[1] - 5
+    map_launch_btn = Button("red", map_launch_btn_x, map_launch_btn_y, map_launch_btn_size[0], map_launch_btn_size[1], "Launch!", standard_font,"white", instaDraw=True)
 
 
 def drawGrid():
