@@ -8,6 +8,7 @@ import os
 import typing
 import math
 import re
+import uuid
 
 from colorama import Fore, init
 from PIL import Image
@@ -34,7 +35,7 @@ pxmap = immap.load()
 
 
 def main():
-    global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, window_w, window_h, grid_start, map_row_lengh
+    global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, window_w, window_h, grid_start, map_row_lengh, map_queue, map_queue_x_buttons_dict
     pygame.init()
     pygame.display.set_caption("Bomb It!")
 
@@ -51,6 +52,8 @@ def main():
     #-----
     active_bomb_text = '10 kT'
     active_bomb = kt10
+
+    map_queue = []
 
     selecting = False
     game_clock = pygame.time.Clock()
@@ -102,7 +105,11 @@ def main():
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     for map in mapdict.keys():
                         mapdict[map].checkANDExecute()
-                    
+
+                    for x_button in map_queue_x_buttons_dict.keys():
+                        if map_queue_x_buttons_dict[x_button].checkmouseover():
+                            map_queue.remove(x_button)
+
                     if back_button.checkmouseover():
                         game_running = map_select_running = False
                         start_menu_running = True
@@ -262,7 +269,8 @@ def drawStartMenu():
     mapselect_btn = Button(menu_btn_color, mapselect_btn_location[0], mapselect_btn_location[1], mapselect_btn_size[0], mapselect_btn_size[1], "Map selection", menu_btn_font, "white", instaDraw=True)
 
 def drawMapSelect():
-    global mapdict, map_queue, back_button
+    global mapdict, map_queue, back_button, map_queue_x_buttons_dict
+
     MapFrame.instance_num = 0
     MapFrame.row = 0
     back_button = RoundButton((66, 135, 245), 20, 20, 30, 30, "<-", pygame.font.SysFont('Bahnschrift SemiBold', 30),'black',["red", "3"], instaDraw = True)
@@ -271,9 +279,37 @@ def drawMapSelect():
     mapdict = {}
     for map in os.listdir(mapdir):
         file_ending = re.search(r".*(\..*)$", map).group(1)
+        if not file_ending == ".png":
+            continue 
         mapdict[map] = MapFrame((79, 53, 105), os.path.join(mapdir, map), map.removesuffix(file_ending))
+    
+    #region Map queue
+    map_queue_x_buttons_dict = {}
+    map_queue_element_height = 50
+    def draw_map_queue_element(top_y: int, mapname: str):
+        pygame.draw.rect(screen, strtoRGB("white"), [5, top_y, map_queue_w - 10, map_queue_element_height], 1)
+        mapname_text_font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
+        mapname_text = mapname.rpartition('_')[0]
+        mapname_ftext = mapname_text_font.render(mapname_text, True, (255, 255, 255))
+        mapname_width, mapname_height = mapname_ftext.get_size()
+        mapname_y = top_y + center(item_height = mapname_height, parent_height = 50, center_direction = "vertical")
+        screen.blit(mapname_ftext, [10, mapname_y])
 
-    map_queue = []
+        # X button
+        x_text_font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
+        x_ftext = x_text_font.render("x", True, (255,255,255))
+        x_ftext_width, x_ftext_height = x_ftext.get_size()
+        x_ftext_y =  top_y + center(item_height = x_ftext_height, parent_height = 50, center_direction = "vertical")
+        map_queue_x_buttons_dict[mapname] = Button((0,0,0), map_queue_w - 15 - x_ftext_width, x_ftext_y, x_ftext_width, x_ftext_height, "x", x_text_font, "white", instaDraw = True)
+    
+    pygame.draw.line(screen, "white", [map_queue_w, 0], [map_queue_w, window_h], 2)
+
+    top_y = 100
+    for map in map_queue:
+        draw_map_queue_element(top_y, map)
+        top_y += map_queue_element_height + 5
+    #endregion
+
 
 def drawGrid():
     '''Used to draw base grid before effects'''
@@ -508,7 +544,7 @@ class MapFrame:
             return None
 
     def onclick(self):
-        map_queue.append(self.instance_name)
+        map_queue.append(f"{self.instance_name}_{uuid.uuid4()}")
 
     def checkANDExecute(self) -> None:
         if self.checkmouseover() == True:
