@@ -9,6 +9,7 @@ import typing
 import math
 import re
 import uuid
+import random
 
 from colorama import Fore, init
 from PIL import Image
@@ -28,20 +29,18 @@ FPS = 60
 score_types = {}
 total_score = 100
 
-immap = Image.open("resources\maps\map0.png")
-pxmap = immap.load()
+
 
 
 
 def main():
     global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, \
-          window_w, window_h, grid_start, map_row_lengh, map_queue, map_queue_x_buttons_dict, standard_font
+          window_w, window_h, grid_start, map_row_lengh, map_queue, map_queue_x_buttons_dict, standard_font, immap, pxmap
     pygame.init()
     pygame.display.set_caption("Bomb It!")
     standard_font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
 
     getTileSize() #!!TEMP
-    grid_start = window_w - immap.size[0] * tile_size
     screen = pygame.Surface((window_w, window_h))
     rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
     # Bombs
@@ -59,7 +58,7 @@ def main():
     selecting = False
     game_clock = pygame.time.Clock()
     mouse_pos = pygame.mouse.get_pos()
-    mouseTilecords()
+    # mouseTilecords()
     app_running = start_menu_running = game_running = True
     map_select_running = False
     while app_running:
@@ -93,7 +92,7 @@ def main():
             global map_queue_w
             map_queue_w = 200
             map_row_lengh = int((window_w - map_queue_w) / 280)
-            if map_row_lengh == 0: 
+            if map_row_lengh == 0:
                 map_row_lengh = 1
 
             screen.fill((0,0,0))
@@ -128,13 +127,30 @@ def main():
             rscreen.blit(screen, (0,0))
             pygame.display.flip()
 
+        first_draw = True
         while game_running:
             screen.fill((0,0,0))
+            if not len(map_queue) == 0:
+                file_name = map_queue[0].rpartition('_')[0] + ".png"
+            elif first_draw:
+                possible_maps = []
+                for map in  os.listdir("resources\maps"):
+                    file_ending = re.search(r".*(\..*)$", map).group(1)
+                    if not file_ending == ".png":
+                        continue
+                    possible_maps.append(map)
+                file_name = possible_maps[random.randint(0, len(possible_maps) - 1)]
+
+                    
+            immap = Image.open(os.path.join(SELF_LOC, "resources\maps", file_name))
+            pxmap = immap.load()
+            grid_start = window_w - immap.size[0] * tile_size
+            threading.Thread(target=mouseTilecords).start()
             drawGrid()
             drawEfects()
             drawMenu()
+            first_draw = False
             mouse_pos = pygame.mouse.get_pos()
-            threading.Thread(target=mouseTilecords).start()
             # event handling, gets all events from the event queue
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -145,8 +161,14 @@ def main():
                     bomb2_btn.checkAndExecute()
                     bomb3_btn.checkAndExecute()
 
-                    if explode_btn.checkmouseover():
+                    if explode_btn.checkmouseover() and time.time() >= explode_time + max(Bomb.explode_durations):
                         explode_time = time.time()
+                    
+                    if next_map_btn.checkmouseover():
+                        if not len(map_queue) == 0:
+                            del map_queue[0]
+                        else:
+                            first_draw = True
 
                     if mouse_pos[0] > MENU_WIDTH and selecting == False:
                         selecting = True
@@ -156,7 +178,8 @@ def main():
                 if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and selecting == True:
                     selecting = False
                     selection.append((tile_cord_x, tile_cord_y))
-                    selectTiles()
+                    if time.time() >= explode_time + max(Bomb.explode_durations):
+                        selectTiles()
 
                 if event.type == pygame.VIDEORESIZE:
                     onWindowScale(event)
@@ -175,7 +198,6 @@ def onWindowScale(event):
     screen.fill((0,0,0))
 
     getTileSize()
-    grid_start = window_w - immap.size[0] * tile_size
 
 def getTileSize():
     global tile_size
@@ -275,11 +297,11 @@ def drawStartMenu():
     mapselect_btn = Button(menu_btn_color, mapselect_btn_location[0], mapselect_btn_location[1], mapselect_btn_size[0], mapselect_btn_size[1], "Map selection", menu_btn_font, "white", instaDraw=True)
 
 def drawMapSelect():
-    global mapdict, map_queue, back_button, map_queue_x_buttons_dict, map_launch_btn
+    global mapdict, back_button, map_queue_x_buttons_dict, map_launch_btn
 
     MapFrame.instance_num = 0
     MapFrame.row = 0
-    back_button = RoundButton((66, 135, 245), 20, 20, 30, 30, "<-", pygame.font.SysFont('Bahnschrift SemiBold', 30),'black',["red", "3"], instaDraw = True)
+    back_button = RoundButton((66, 135, 245), 20, 20, 30, 30, "<-", standard_font,'black',["red", "3"], instaDraw = True)
 
     mapdir = os.path.join(SELF_LOC + '/resources/maps')
     mapdict = {}
@@ -320,7 +342,6 @@ def drawMapSelect():
     map_launch_btn_x, map_launch_btn_y = center(item_width = map_launch_btn_size[0], parent_width = map_queue_w, center_direction="horizontal"), window_h - map_launch_btn_size[1] - 5
     map_launch_btn = Button("red", map_launch_btn_x, map_launch_btn_y, map_launch_btn_size[0], map_launch_btn_size[1], "Launch!", standard_font,"white", instaDraw=True)
 
-
 def drawGrid():
     '''Used to draw base grid before effects'''
 
@@ -337,14 +358,20 @@ def drawGrid():
         pix_y = 0
 
 def drawMenu():
-    global bomb1_btn, bomb2_btn, bomb3_btn, explode_btn
+    global bomb1_btn, bomb2_btn, bomb3_btn, explode_btn, next_map_btn
     pygame.draw.rect(screen, strtoRGB('black'), pygame.Rect(0, 0, MENU_WIDTH, window_h))
     bomb1_btn = BombButton(20, 30, 100, 50,'10kT', kt10)
     bomb2_btn = BombButton(20, 90, 100, 50,'50kT', kt50)
     bomb3_btn = BombButton(20, 150, 100, 50,'100kT', kt100)
-    explode_btn = Button('red', 10, window_h -100, 150, 50, 'EXPLODE!', pygame.font.SysFont('Bahnschrift SemiBold', 30),'black',[ 'white',3, 4], instaDraw=True)
+    if time.time() >= explode_time + max(Bomb.explode_durations):
+        explode_btn = Button('green', 10, window_h - 90, 150, 50, "EXPLODE!", standard_font,'black',[ 'white',3, 4], instaDraw=True)
+    else:
+        explode_btn = Button('red', 10, window_h - 90, 150, 50, "EXPLODE!", standard_font,'black',[ 'white',3, 4], instaDraw=True)
+    
+    next_map_btn = Button((73, 94, 128), 10, window_h - 150, 150, 50, "Next map", standard_font,'black',[ 'white',3, 4], instaDraw=True)
+
     # draw active-bomb text
-    active_bomb_font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
+    active_bomb_font = standard_font
     active_bomb_font_color = strtoRGB('white')
     active_bomb_ftext = active_bomb_font.render(active_bomb_text, True, active_bomb_font_color)
     pygame.draw.rect(screen, (0,0,0), [0, window_h-30, 190, 30])
@@ -353,7 +380,6 @@ def drawMenu():
     total_score_font = active_bomb_font
     total_score_font_color = active_bomb_font_color
     total_score_ftext = total_score_font.render(f"Score:{total_score}", True, total_score_font_color)
-    pygame.draw.rect(screen, (0,0,0), [0, window_h - 200, 190, 30])
     screen.blit(total_score_ftext, (20, window_h - 200))
 
 def drawEfects():
@@ -383,8 +409,9 @@ def calculateTotalScore():
         score += value[0]
 
 class Bomb(abc.ABC):
-    instances = {}
     '''This is the abc that all bombs should inherit from'''
+    instances = {}
+    explode_durations = []
     def __init__(self, radius, explode_duration, tile_icon: tuple | pygame.Surface, explosion_color, instance_name:str, nickname:str = "No nickname") -> None:
         self.instance_name = instance_name
         self.nickname = nickname
@@ -398,6 +425,7 @@ class Bomb(abc.ABC):
         self.explosion_color = explosion_color
 
         Bomb.instances[self.instance_name] = [self.__class__.__name__, self.instance_name,self.nickname]
+        Bomb.explode_durations.append(self.explode_duration)
 
     @abc.abstractmethod
     def draw(self):
@@ -504,7 +532,7 @@ class RoundButton(Button):
 class BombButton(Button):
     '''Use this class to make any BomButtons so that they all have certain atributes the same'''
     def __init__(self, x_pos: int, y_pos: int, width: int, height: int, text: str, bombinstance: type[Bomb]) -> None:
-        super().__init__('armygreen', x_pos, y_pos, width, height, text,pygame.font.SysFont('Bahnschrift SemiBold', 30),'black', instaDraw=True)
+        super().__init__('armygreen', x_pos, y_pos, width, height, text,standard_font,'black', instaDraw=True)
         self.bombinstance = bombinstance
 
     def onclick(self):
