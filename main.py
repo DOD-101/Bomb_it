@@ -265,7 +265,7 @@ def drawMapSelect():
     global mapdict, map_queue, back_button
     MapFrame.instance_num = 0
     MapFrame.row = 0
-    back_button = Button((66, 135, 245), 20, 20, 30, 30, "<-", pygame.font.SysFont('Bahnschrift SemiBold', 30),'black', ["red", 5, 5], instaDraw = True)
+    back_button = RoundButton((66, 135, 245), 20, 20, 30, 30, "<-", pygame.font.SysFont('Bahnschrift SemiBold', 30),'black',["red", "3"], instaDraw = True)
 
     mapdir = os.path.join(SELF_LOC + '/resources/maps')
     mapdict = {}
@@ -401,6 +401,8 @@ class Button:
         if not border == None:
             self.border = border
             self.border[0] = strtoRGB(self.border[0])
+            self.border[1] = int(self.border[1])
+            self.border[2] = int(self.border[2])
 
         if instaDraw == True:
             self.draw()
@@ -411,8 +413,8 @@ class Button:
             pygame.draw.rect(screen, self.border[0], [self.x_pos - (self.border[1] / 2), self.y_pos - (self.border[1] / 2), self.width + self.border[1],self.height + self.border[1]], self.border[1], self.border[2])
         self.text_width  = self.ftext.get_width()
         self.text_height = self.ftext.get_height()
-        self.text_centered_x = ((self.width - self.text_width) / 2) + self.x_pos
-        self.text_centered_y = ((self.height - self.text_height) / 2) + self.y_pos
+        self.text_centered_x = self.x_pos + center(item_width = self.text_width, parent_width = self.width, center_direction = 'horizontal')
+        self.text_centered_y = self.y_pos + center(item_height = self.text_height, parent_height = self.height, center_direction = 'vertical')
         screen.blit(self.ftext, (self.text_centered_x, self.text_centered_y))
 
     def checkmouseover(self) -> bool:
@@ -421,6 +423,38 @@ class Button:
         else:
             return False
 
+class RoundButton(Button):
+    """Draws a button as an ellipse"""
+    def __init__(self, color, x_pos: int, y_pos: int, width: int, height: int, text: str, font, font_color, border: typing.Literal['color', 'width'] = None, instaDraw: bool = False) -> None:
+        super().__init__(color, x_pos, y_pos, width, height, text, font, font_color, [*border, 0], instaDraw)
+        
+        # math from https://stackoverflow.com/questions/59971407/how-can-i-test-if-a-point-is-in-an-ellipse
+        self.semi_axis_a = self.width // 2
+        self.semi_axis_b = self.width // 2
+        self.scale_y = self.semi_axis_a / self.semi_axis_b
+        self.cpt_x, self.cpt_y = self.x_pos + self.width / 2, self.y_pos + self.height / 2 
+
+    def draw(self) -> None:
+        pygame.draw.ellipse(screen, self.color, [self.x_pos, self.y_pos, self.width,self.height])
+        if hasattr(self, "border"):
+            pygame.draw.ellipse(screen, self.border[0], [self.x_pos - (self.border[1] / 2), self.y_pos - (self.border[1] / 2), self.width + self.border[1],self.height + self.border[1]], self.border[1])
+        self.text_width  = self.ftext.get_width()
+        self.text_height = self.ftext.get_height()
+        self.text_centered_x = self.x_pos + center(item_width = self.text_width, parent_width = self.width, center_direction = 'horizontal')
+        self.text_centered_y = self.y_pos + center(item_height = self.text_height, parent_height = self.height, center_direction = 'vertical')
+        screen.blit(self.ftext, (self.text_centered_x, self.text_centered_y))
+
+
+    
+    def checkmouseover(self) -> bool:
+        dx = mouse_pos[0] - self.cpt_x
+        dy = (mouse_pos[1] - self.cpt_y) * self.scale_y
+        collide =  dx*dx + dy*dy <= self.semi_axis_a*self.semi_axis_a
+        if collide:
+            print("Yes", end="")
+            return True
+        else:
+            return False
 class BombButton(Button):
     '''Use this class to make any BomButtons so that they all have certain atributes the same'''
     def __init__(self, x_pos: int, y_pos: int, width: int, height: int, text: str, bombinstance: type[Bomb]) -> None:
