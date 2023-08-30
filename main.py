@@ -14,6 +14,7 @@ import random
 from colorama import Fore, init
 from PIL import Image
 from utils import utils
+from utils import map_utils
 center = utils.center
 strtoRGB = utils.strToRGB
 
@@ -26,8 +27,8 @@ window_h = 300
 selected_tiles = set()
 explode_time = 1
 FPS = 60
-score_types = {}
-total_score = 100
+score_functions = set()
+
 
 
 
@@ -35,7 +36,7 @@ total_score = 100
 
 def main():
     global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, \
-          window_w, window_h, grid_start, map_row_lengh, map_queue, map_queue_x_buttons_dict, standard_font, immap, pxmap
+          window_w, window_h, grid_start, map_row_lengh, map_queue, map_queue_x_buttons_dict, standard_font, immap, pxmap, total_score
     pygame.init()
     pygame.display.set_caption("Bomb It!")
     standard_font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
@@ -47,13 +48,15 @@ def main():
     kt10_img = pygame.image.load(os.path.join(SELF_LOC, "resources\\bomb_icons\\conventional\\test.png")).convert()
     kt10  = ConventionalBomb(0, 3,kt10_img, "kt10", "G-kt10")
     kt50  = ConventionalBomb(2, 3,(255, 102, 255), "kt50", "G-kt50")
-    kt100 = ConventionalBomb(10, 3,(102, 255, 102), "kt100", "G-kt100")
+    kt100 = ConventionalBomb(5, 3,(102, 255, 102), "kt100", "G-kt100")
 
     #-----
     active_bomb_text = '10 kT'
     active_bomb = kt10
 
     map_queue = []
+
+    total_score = 100
 
     selecting = False
     game_clock = pygame.time.Clock()
@@ -163,6 +166,9 @@ def main():
                     bomb3_btn.checkAndExecute()
 
                     if explode_btn.checkmouseover() and time.time() >= explode_time + max(Bomb.explode_durations):
+                        calculateAreas_func = getattr(active_bomb, "calculateAreas")
+                        calculateAreas_func()
+                        total_score = calculateTotalScore()
                         explode_time = time.time()
                     
                     if next_map_btn.checkmouseover():
@@ -397,19 +403,17 @@ def drawEfects():
     #explosions of bombs
     current_time = time.time()
     for key, value in Bomb.instances.items():
-        calculateAreas_func = getattr(eval(key), "calculateAreas")
-        calculateAreas_func()
         explode_func = getattr(eval(key), "explode")
         explode_func(current_time)
 
-def registerScoreParameter(value: int, name, group = False):
-    value = round(value)
-    score_types[name] = [value]
+def registerScoreParameter(function):
+    score_functions.add(function)
 
 def calculateTotalScore():
     score = 0
-    for key, value in score_types.items():
-        score += value[0]
+    for value in score_functions:
+        score += value()
+    return score
 
 class Bomb(abc.ABC):
     '''This is the abc that all bombs should inherit from'''
@@ -469,7 +473,7 @@ class ConventionalBomb(Bomb):
                 for y in range(rect[1], rect[3] + 1):
                     self.explosion_area.add((x,y))
     def explode(self, current_t):
-        if not current_t - self.explode_duration <= explode_time:
+        if not current_t - self.explode_duration <= explode_time or self.tiles == set():
             return None
         for explosion_effect in self.explosion_area:
             real_loc = cordsConvert(explosion_effect, True)
