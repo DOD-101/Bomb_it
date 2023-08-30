@@ -36,7 +36,7 @@ score_functions = set()
 
 def main():
     global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, \
-          window_w, window_h, grid_start, map_row_lengh, map_queue, map_queue_x_buttons_dict, standard_font, immap, pxmap, total_score
+          window_w, window_h, grid_start, map_row_lengh, map_queue, map_queue_x_buttons_dict, standard_font, immap, pxmap, total_score, colordict
     pygame.init()
     pygame.display.set_caption("Bomb It!")
     standard_font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
@@ -147,6 +147,7 @@ def main():
                     
             immap = Image.open(os.path.join(SELF_LOC, "resources\maps", file_name))
             pxmap = immap.load()
+            colordict = map_utils.px_to_colordict(immap, [(0, 255, 0),(0, 0, 255),(255, 0, 255),(255, 0, 0),(0,0,0),(255, 255, 0)])
             grid_start = window_w - immap.size[0] * tile_size
             threading.Thread(target=mouseTilecords).start()
             mouseTilecords()
@@ -166,8 +167,9 @@ def main():
                     bomb3_btn.checkAndExecute()
 
                     if explode_btn.checkmouseover() and time.time() >= explode_time + max(Bomb.explode_durations):
-                        calculateAreas_func = getattr(active_bomb, "calculateAreas")
-                        calculateAreas_func()
+                        for bomb in Bomb.instances:
+                            calculateAreas_func = getattr(eval(bomb), "calculateAreas")
+                            calculateAreas_func()
                         total_score = calculateTotalScore()
                         explode_time = time.time()
                     
@@ -282,7 +284,7 @@ def selectTiles():
                 if (x,y) in active_bomb.tiles:
                     active_bomb.tiles.remove((x,y))
                 else:
-                    for key, value in Bomb.instances.items():
+                    for key in Bomb.instances.keys():
                         if not (x,y) in eval(key).tiles:
                             continue
                         eval(key).tiles.remove((x,y))
@@ -415,6 +417,17 @@ def calculateTotalScore():
         score += value()
     return score
 
+def tilesHitScore():
+    all_tiles_hit = set()
+    for key in Bomb.instances.keys():
+        all_tiles_hit.update(eval(key).explosion_area)
+    houses_hit = colordict[(255, 0, 255)]  & all_tiles_hit
+    industry_hit = colordict[(255, 0, 0)]  & all_tiles_hit
+    houses_value = len(houses_hit) * 200
+    industry_value = len(industry_hit) * 50
+    return industry_value - houses_value
+registerScoreParameter(tilesHitScore)
+
 class Bomb(abc.ABC):
     '''This is the abc that all bombs should inherit from'''
     instances = {}
@@ -472,6 +485,7 @@ class ConventionalBomb(Bomb):
             for x in range(rect[0], rect[2] + 1):
                 for y in range(rect[1], rect[3] + 1):
                     self.explosion_area.add((x,y))
+
     def explode(self, current_t):
         if not current_t - self.explode_duration <= explode_time or self.tiles == set():
             return None
