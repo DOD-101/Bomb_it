@@ -1,8 +1,8 @@
 ---
 name: Bug report
-about: Create a report to help improve the game
+about: Create a bug report to help improve the game
 title: "[BUG] - short title "
-labels: ''
+labels: bug
 assignees: ''
 
 ---
