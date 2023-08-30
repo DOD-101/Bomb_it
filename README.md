@@ -4,14 +4,13 @@
 Bomb it! is an open-source game written in python using the pygame module package. 
 
 The objective of the game is simple: **BOMB STUFF**. 
-There are NUMBER OF MAPS to choose from and NUMBER OF BOMBS use to destroy the targets on each map. You get a certain number of points for destroying targets and get points subtracted for the amount of bombs you used (and the types of bombs) and hitting things other than the targets. 
+There are NUMBER OF MAPS to choose from and NUMBER OF BOMBS used to destroy the "targets" on each map. You get a certain number of points for destroying targets and get points subtracted for the amount of bombs you used (and the types of bombs) and hitting things other than the targets. 
 
 This is my first game and is intended in large part to further my coding capabilities. It is open-source to:
 
     1. Allow for anyone willing to help develope it further to do so
     2. Let anyone copy the code and make their own version of it
     3. Make it easier for anyone wishing to "mod" it
-    4. People to laugh and point out my stupidity
 
 
 ## Community
