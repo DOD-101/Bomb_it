@@ -146,6 +146,7 @@ def main():
             pxmap = immap.load()
             grid_start = window_w - immap.size[0] * tile_size
             threading.Thread(target=mouseTilecords).start()
+            mouseTilecords()
             drawGrid()
             drawEfects()
             drawMenu()
@@ -246,7 +247,7 @@ def cordsConvert(cord: set | list | tuple, to_normal: bool = False):
 def mouseTilecords() -> None:
     '''Gets the position of the mouse and converts it to tile-cordinates'''
     global tile_cord_x, tile_cord_y, mouse_pos, mouse_tile_cords
-    if mouse_pos[0] < MENU_WIDTH:
+    if mouse_pos[0] < grid_start:
         mouse_tile_cords = [0,0]
     mouse_pos = pygame.mouse.get_pos()
     mouse_tile_cords = cordsConvert(mouse_pos)
@@ -396,6 +397,8 @@ def drawEfects():
     #explosions of bombs
     current_time = time.time()
     for key, value in Bomb.instances.items():
+        calculateAreas_func = getattr(eval(key), "calculateAreas")
+        calculateAreas_func()
         explode_func = getattr(eval(key), "explode")
         explode_func(current_time)
 
@@ -430,6 +433,10 @@ class Bomb(abc.ABC):
     @abc.abstractmethod
     def draw(self):
         pass
+    
+    @abc.abstractmethod
+    def calculateAreas(self):
+        pass
 
     @abc.abstractmethod
     def explode(self):
@@ -452,14 +459,21 @@ class ConventionalBomb(Bomb):
                 screen.blit(tile_icon_scaled, (real_loc[0], real_loc[1]))
         else:
             raise TypeError(f"Invalid type '{type(self.tile_icon)}' for self.tile_icon")
-
+    	
+    def calculateAreas(self):
+        """This bomb type has only 1 Area: explosion_area"""
+        self.explosion_area: set[tuple[int,int]] = set()
+        for loc in self.tiles:
+            rect = [loc[0] - self.radius, loc[1] - self.radius, loc[0] + self.radius, loc[1] + self.radius] #not a pygame rect! [top_left_x, top_left_y, bottom_right_x, bottom_right_y]
+            for x in range(rect[0], rect[2] + 1):
+                for y in range(rect[1], rect[3] + 1):
+                    self.explosion_area.add((x,y))
     def explode(self, current_t):
         if not current_t - self.explode_duration <= explode_time:
             return None
-        for loc in self.tiles:
-            real_loc = cordsConvert(loc, True)
-            Exp_rect = pygame.Rect(real_loc[0]-self.radius*tile_size, real_loc[1]-self.radius*tile_size,(self.radius*tile_size*2)+1*tile_size,(self.radius*tile_size*2)+1*tile_size)
-            pygame.draw.rect(screen, strtoRGB('explosionorange'), Exp_rect)
+        for explosion_effect in self.explosion_area:
+            real_loc = cordsConvert(explosion_effect, True)
+            pygame.draw.rect(screen, strtoRGB('explosionorange'), pygame.Rect(real_loc[0], real_loc[1],tile_size,tile_size))
 
 class Button:
     def __init__(self, color ,x_pos: int, y_pos: int, width:int, height: int, text: str, font, font_color, border: typing.Literal["color","width","radius"]= None, instaDraw: bool = False) -> None:
@@ -529,6 +543,7 @@ class RoundButton(Button):
             return True
         else:
             return False
+
 class BombButton(Button):
     '''Use this class to make any BomButtons so that they all have certain atributes the same'''
     def __init__(self, x_pos: int, y_pos: int, width: int, height: int, text: str, bombinstance: type[Bomb]) -> None:
