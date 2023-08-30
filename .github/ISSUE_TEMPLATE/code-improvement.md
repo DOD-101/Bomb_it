@@ -13,4 +13,5 @@ What kind of code improvement is needed:
 []Code could could easily produce a bug in the future
 []Code doesn't follow style guide
 []Code needs commenting/docstring
+[]Code isn't easily expandable/future-proof
 []Other
