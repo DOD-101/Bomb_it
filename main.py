@@ -1,15 +1,14 @@
 import pygame
 import pygame_widgets as pyw
 
-import threading
 import abc
 import time
 import os
 import typing
-import math
 import re
 import uuid
 import random
+import json
 
 from colorama import Fore, init
 from PIL import Image
@@ -20,29 +19,22 @@ strtoRGB = utils.strToRGB
 
 init()
 
-SELF_LOC = os.path.dirname(os.path.realpath(__file__))
-MENU_WIDTH = 200
 window_w = 1000
 window_h = 300
-selected_tiles = set()
-explode_time = 1
-FPS = 60
 score_functions = set()
-
-
-
-
-
 
 def main():
     global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, \
-          window_w, window_h, grid_start, map_row_lengh, map_queue, map_queue_x_buttons_dict, standard_font, immap, pxmap, total_score, colordict
+          window_w, window_h, grid_start, map_row_lengh, map_queue, map_queue_x_buttons_dict, standard_font, immap, total_score, mapcolors, \
+          colors
     pygame.init()
     pygame.display.set_caption("Bomb It!")
     standard_font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
 
-    getTileSize() #!!TEMP
-    screen = pygame.Surface((window_w, window_h))
+    map_row_lengh = int((window_w - map_queue_w) / 280)
+    if map_row_lengh == 0:
+        map_row_lengh = 1
+    screen = pygame.Surface((1000, 1000))
     rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
     # Bombs
     kt10_img = pygame.image.load(os.path.join(SELF_LOC, "resources\\bomb_icons\\conventional\\test.png")).convert()
@@ -58,30 +50,32 @@ def main():
 
     total_score = 100
 
+    running = "start"
+
+    with open('color.json') as json_file:
+        colors = json.load(json_file)
+    
+        print("Type:", type(colors))
+
     selecting = False
     game_clock = pygame.time.Clock()
-    mouse_pos = pygame.mouse.get_pos()
-    # mouseTilecords()
-    app_running = start_menu_running = game_running = True
-    map_select_running = False
-    while app_running:
-        while start_menu_running:
-            screen.fill((0,0,0))
+    first_draw = True
+    while not running == "quit":
+        mouse_pos = pygame.mouse.get_pos()
+        if running == "start":
             drawStartMenu()
-            mouse_pos = pygame.mouse.get_pos()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    app_running = game_running = start_menu_running = False
+                    running = "quit"
+                    break
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if launch_btn.checkmouseover():
-                        start_menu_running = map_select_running = False
-                        game_running = True
+                        running = "game"
                         
                     
                     if mapselect_btn.checkmouseover():
-                        start_menu_running = False
-                        map_select_running = True
+                        running = "map_select"
 
                 if event.type == pygame.VIDEORESIZE:
                     onWindowScale(event)
@@ -91,24 +85,18 @@ def main():
             rscreen.blit(screen, (0,0))
             pygame.display.flip()
 
-        while map_select_running:
-            global map_queue_w
-            map_queue_w = 200
-            map_row_lengh = int((window_w - map_queue_w) / 280)
-            if map_row_lengh == 0:
-                map_row_lengh = 1
+        if running == "map_select":
 
-            screen.fill((0,0,0))
+
             drawMapSelect()
-            mouse_pos = pygame.mouse.get_pos()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    app_running = game_running = map_select_running = start_menu_running = False
+                    running = "quit"
+                    break
                 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if map_launch_btn.checkmouseover():
-                        map_select_running = start_menu_running = False
-                        game_running = True
+                        running = "game"
                         break
 
                     for map in mapdict.keys():
@@ -119,8 +107,7 @@ def main():
                             map_queue.remove(x_button)
 
                     if back_button.checkmouseover():
-                        game_running = map_select_running = False
-                        start_menu_running = True
+                        running = "start"
                     
                 if event.type == pygame.VIDEORESIZE:
                     onWindowScale(event)
@@ -130,9 +117,8 @@ def main():
             rscreen.blit(screen, (0,0))
             pygame.display.flip()
 
-        first_draw = True
-        while game_running:
-            screen.fill((0,0,0))
+
+        if running == "game":
             if not len(map_queue) == 0:
                 file_name = map_queue[0].rpartition('_')[0] + ".png"
             elif first_draw:
@@ -146,20 +132,19 @@ def main():
 
                     
             immap = Image.open(os.path.join(SELF_LOC, "resources\maps", file_name))
-            pxmap = immap.load()
-            colordict = map_utils.px_to_colordict(immap, [(0, 255, 0),(0, 0, 255),(255, 0, 255),(255, 0, 0),(0,0,0),(255, 255, 0)])
+            mapcolors = map_utils.px_to_colordict(immap, [(0, 255, 0),(0, 0, 255),(255, 0, 255),(255, 0, 0),(0,0,0),(255, 255, 0)])
+            getTileSize()
             grid_start = window_w - immap.size[0] * tile_size
-            threading.Thread(target=mouseTilecords).start()
             mouseTilecords()
             drawGrid()
             drawEfects()
             drawMenu()
             first_draw = False
-            mouse_pos = pygame.mouse.get_pos()
             # event handling, gets all events from the event queue
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    app_running = game_running = start_menu_running = False
+                    running = "quit"
+                    break
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     bomb1_btn.checkAndExecute()
@@ -200,56 +185,57 @@ def main():
             game_clock.tick(FPS)
 
 def onWindowScale(event):
-    global screen, rscreen, window_w, window_h, grid_start
+    global screen, rscreen, window_w, window_h, map_row_lengh
     window_w, window_h = event.size
+    map_row_lengh = int((window_w - map_queue_w) / 280)
+    if map_row_lengh == 0:
+        map_row_lengh = 1
     rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
     screen = pygame.transform.scale(screen, (window_w, window_h))
-    screen.fill((0,0,0))
+    screen.fill(colors["all"]["background"])
 
     getTileSize()
 
 def getTileSize():
     global tile_size
-    immap = Image.open("resources\maps\map0.png")
-    pxmap = immap.load()
     if window_w - MENU_WIDTH >= window_h:
         tile_size = window_h / immap.size[1]
     else:
-        tile_size = window_w / immap.size[0]
+        tile_size = (window_w - MENU_WIDTH) / immap.size[0]
 
-    tile_size = int(tile_size)
+    tile_size = int(tile_size) if int(tile_size) >= 1 else 1 
 
 def cordsConvert(cord: set | list | tuple, to_normal: bool = False):
     '''If to_normal is False will convert given cordinates to tile-cords. Else will do in reverse. Read notes on reverse.'''
-    new_cord = type(cord)
+    new_cord = []
+    cord_type = type(cord)
+    cord_list = []
+    for check in cord:
+        if type(check) == int:
+            cord_list.append(cord)
+            cord = cord_list
+            break
     if to_normal == True:
         '''Does not give exact location of mouse, but rather starting location of tile (aka. top left corner). Unless provided tile cords are acurrate floates.'''
-        if type(cord) == set or type(cord) == list:
-            for c in cord:
-                c[0] = (c[0] * tile_size) + grid_start
-                c[1] =  c[1] * tile_size
-                new_cord.add(c)
-        elif type(cord) == tuple:
-            x = (cord[0] * tile_size) + grid_start
-            y = cord[1] * tile_size
-            new_cord = tuple([x,y])
-        else:
-            raise TypeError(f"Invalid type to convert! Type {type(cord)} not supported.")
+        for c in cord:
+            c_type = type(c)
+            c_clone = list(c)
+            c_clone[0] = (c_clone[0] * tile_size) + grid_start
+            c_clone[1] =  c_clone[1] * tile_size
+            c_clone = c_type(c_clone)
+            new_cord.append(c_clone)
     elif to_normal == False:
-        if type(cord) == set or type(cord) == list:
-            for c in cord:
-                c[0] = int((c[0] - grid_start) / tile_size)
-                c[1] =  int(c[1] / tile_size)
-                new_cord.add(c)
-        elif type(cord) == tuple:
-            x = int((cord[0] - grid_start) / tile_size)
-            y = int(cord[1] / tile_size)
-            new_cord = tuple([x,y])
-        else:
-            raise TypeError(f"Invalid type to convert! Type {type(cord)} not supported.")
+        for c in cord:
+            c_type = type(c)
+            c_clone = list(c)
+            c_clone[0] = int((c_clone[0] - grid_start) / tile_size)
+            c_clone[1] = int(c_clone[1] / tile_size)
+            c_clone = c_type(c_clone)
+            new_cord.append(c_clone)
     else:
         raise ValueError("Invalid value for to_normal!")
 
+    new_cord = cord_type(new_cord[0])
     return new_cord
 
 def mouseTilecords() -> None:
@@ -294,6 +280,7 @@ def selectTiles():
 
 def drawStartMenu():
     global launch_btn, mapselect_btn
+    screen.fill(colors["all"]["background"])
     menu_btn_font = pygame.font.SysFont("Cooper Black", 40)
     menu_btn_color = (102, 153, 153)
 
@@ -307,10 +294,10 @@ def drawStartMenu():
 
 def drawMapSelect():
     global mapdict, back_button, map_queue_x_buttons_dict, map_launch_btn
-
+    screen.fill(colors["all"]["background"])
     MapFrame.instance_num = 0
     MapFrame.row = 0
-    back_button = RoundButton((66, 135, 245), 20, 20, 30, 30, "<-", standard_font,'black',["red", "3"], instaDraw = True)
+    back_button = RoundButton(colors["all"]["back_button"]["fill"], 20, 20, 30, 30, "<", standard_font,'white',[colors["all"]["back_button"]["border"], "3"], instaDraw = True)
 
     mapdir = os.path.join(SELF_LOC + '/resources/maps')
     mapdict = {}
@@ -318,7 +305,7 @@ def drawMapSelect():
         file_ending = re.search(r".*(\..*)$", map).group(1)
         if not file_ending == ".png":
             continue 
-        mapdict[map] = MapFrame((79, 53, 105), os.path.join(mapdir, map), map.removesuffix(file_ending))
+        mapdict[map] = MapFrame(colors["map_select"]["map-frame"], os.path.join(mapdir, map), map.removesuffix(file_ending))
     
     #region Map queue
     map_queue_x_buttons_dict = {}
@@ -337,7 +324,7 @@ def drawMapSelect():
         x_ftext = x_text_font.render("x", True, (255,255,255))
         x_ftext_width, x_ftext_height = x_ftext.get_size()
         x_ftext_y =  top_y + center(item_height = x_ftext_height, parent_height = 50, center_direction = "vertical")
-        map_queue_x_buttons_dict[mapname] = Button((0,0,0), map_queue_w - 15 - x_ftext_width, x_ftext_y, x_ftext_width, x_ftext_height, "x", x_text_font, "white", instaDraw = True)
+        map_queue_x_buttons_dict[mapname] = Button(colors["all"]["background"], map_queue_w - 15 - x_ftext_width, x_ftext_y, x_ftext_width, x_ftext_height, "x", x_text_font, "white", instaDraw = True)
     
     pygame.draw.line(screen, "white", [map_queue_w, 0], [map_queue_w, window_h], 2)
 
@@ -353,10 +340,10 @@ def drawMapSelect():
 
 def drawGrid():
     '''Used to draw base grid before effects'''
+    screen.fill(colors["all"]["background"])
 
     pix_x, pix_y = 0,0
-
-
+    pxmap = immap.load()
     for x in range(grid_start, immap.size[0]*tile_size + grid_start, tile_size):
         for y in range(0, immap.size[1]*tile_size, tile_size):
             rect = pygame.Rect(x, y, tile_size, tile_size)
@@ -368,7 +355,7 @@ def drawGrid():
 
 def drawMenu():
     global bomb1_btn, bomb2_btn, bomb3_btn, explode_btn, next_map_btn
-    pygame.draw.rect(screen, strtoRGB('black'), pygame.Rect(0, 0, MENU_WIDTH, window_h))
+    pygame.draw.rect(screen,colors["all"]["background"], pygame.Rect(0, 0, MENU_WIDTH, window_h))
     bomb1_btn = BombButton(20, 30, 100, 50,'10kT', kt10)
     bomb2_btn = BombButton(20, 90, 100, 50,'50kT', kt50)
     bomb3_btn = BombButton(20, 150, 100, 50,'100kT', kt100)
@@ -383,7 +370,7 @@ def drawMenu():
     active_bomb_font = standard_font
     active_bomb_font_color = strtoRGB('white')
     active_bomb_ftext = active_bomb_font.render(active_bomb_text, True, active_bomb_font_color)
-    pygame.draw.rect(screen, (0,0,0), [0, window_h-30, 190, 30])
+    pygame.draw.rect(screen, colors["all"]["background"], [0, window_h-30, 190, 30])
     screen.blit(active_bomb_ftext, (20, window_h - 20))
     # draw score text
     total_score_font = active_bomb_font
@@ -417,16 +404,16 @@ def calculateTotalScore():
         score += value()
     return score
 
+@registerScoreParameter
 def tilesHitScore():
     all_tiles_hit = set()
     for key in Bomb.instances.keys():
         all_tiles_hit.update(eval(key).explosion_area)
-    houses_hit = colordict[(255, 0, 255)]  & all_tiles_hit
-    industry_hit = colordict[(255, 0, 0)]  & all_tiles_hit
+    houses_hit = mapcolors[(255, 0, 255)]  & all_tiles_hit
+    industry_hit = mapcolors[(255, 0, 0)]  & all_tiles_hit
     houses_value = len(houses_hit) * 200
     industry_value = len(industry_hit) * 50
     return industry_value - houses_value
-registerScoreParameter(tilesHitScore)
 
 class Bomb(abc.ABC):
     '''This is the abc that all bombs should inherit from'''
@@ -621,4 +608,10 @@ class MapFrame:
         if self.checkmouseover() == True:
             self.onclick()
 if __name__=="__main__":
+    SELF_LOC = os.path.dirname(os.path.realpath(__file__))
+    MENU_WIDTH = 200
+    selected_tiles = set()
+    explode_time = 1
+    FPS = 60
+    map_queue_w = 200
     main()

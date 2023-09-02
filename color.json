@@ -1,0 +1,19 @@
+{
+    "all" : {
+        "background" : [41, 71, 46],
+        "back_button" : {
+            "border" : [110, 107, 107],
+            "fill" : [15, 15, 15]
+        }
+    },
+    "start_menu" : {
+        "button-background" : [95, 132, 133],
+        "button-font" : [255, 255, 255]
+    },
+    "map_select" : {
+        "map-frame" : [79, 53, 105]
+    },
+    "game" : {
+
+    }
+}
