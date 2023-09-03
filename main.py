@@ -23,7 +23,7 @@ score_functions = set()
 
 def main():
     global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, \
-          window_w, window_h, grid_start, map_row_lengh, map_queue, map_queue_x_buttons_dict, standard_font, immap, total_score, mapcolors, \
+          window_w, window_h, grid_start, grid_bottom, map_row_lengh, map_queue, map_queue_x_buttons_dict, standard_font, immap, total_score, mapcolors, \
           colors
     pygame.init()
     pygame.display.set_caption("Bomb It!")
@@ -56,8 +56,6 @@ def main():
     first_draw = True
     while not running == "quit":
         mouse_pos = pygame.mouse.get_pos()
-        with open('color.json') as json_file:
-            colors = json.load(json_file)
         if running == "start":
             drawStartMenu()
             for event in pygame.event.get():
@@ -131,6 +129,7 @@ def main():
             mapcolors = map_utils.px_to_colordict(immap, [(0, 255, 0),(0, 0, 255),(255, 0, 255),(255, 0, 0),(0,0,0),(255, 255, 0)])
             getTileSize()
             grid_start = window_w - immap.size[0] * tile_size
+            grid_bottom = immap.size[1] * tile_size
             mouseTilecords()
             drawGrid()
             drawEfects()
@@ -190,7 +189,6 @@ def onWindowScale(event):
     rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
     screen = pygame.transform.scale(screen, (window_w, window_h))
     screen.fill(colors["all"]["background"])
-
 
 def getTileSize():
     global tile_size
@@ -253,9 +251,9 @@ def selectTiles():
         x1, x2 = x2, x1
     if y2 > y1:
         y1, y2 = y2, y1
-
-
-    if cordsConvert((x1,y1), True)[0] < grid_start:
+    converted_pos1 = cordsConvert((x1,y1), True) 
+    converted_pos2 = cordsConvert((x2,y2), True)
+    if converted_pos1[0] < grid_start or converted_pos1[1] >= grid_bottom or converted_pos2[1] >= grid_bottom:
         return None
     for x in range((x1 - x2)+1):
         x += x2
@@ -376,7 +374,7 @@ def drawMenu():
 
 def drawEfects():
     #hover efect
-    if mouse_pos[0] > grid_start:
+    if mouse_pos[0] > grid_start and mouse_pos[1] < immap.size[1] * tile_size:
         hover_Surface = pygame.Surface((tile_size, tile_size))
         hover_Surface.set_alpha(128)
         hover_Surface.fill(colors["game"]["grid-hover"])
