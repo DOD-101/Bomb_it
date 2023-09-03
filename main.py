@@ -36,13 +36,13 @@ def main():
     rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
     # Bombs
     kt10_img = pygame.image.load(os.path.join(SELF_LOC, "resources\\bomb_icons\\conventional\\test.png")).convert()
-    kt10  = ConventionalBomb(0, 3,kt10_img, "kt10", "G-kt10")
-    kt50  = ConventionalBomb(2, 3,(255, 102, 255), "kt50", "G-kt50")
-    kt100 = ConventionalBomb(5, 3,(102, 255, 102), "kt100", "G-kt100")
+    Bomb.instances["kt10"] = ConventionalBomb(0, 3,kt10_img, "kt10", "G-kt10")
+    Bomb.instances["kt50"] = ConventionalBomb(2, 3,(255, 102, 255), "kt50", "G-kt50")
+    Bomb.instances["kt100"] = ConventionalBomb(5, 3,(102, 255, 102), "kt100", "G-kt100")
 
     #-----
-    active_bomb_text = '10 kT'
-    active_bomb = kt10
+    active_bomb_text = Bomb.instances["kt10"].nickname
+    active_bomb = Bomb.instances["kt10"]
 
     map_queue = []
 
@@ -142,14 +142,12 @@ def main():
                     break
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    bomb1_btn.checkAndExecute()
-                    bomb2_btn.checkAndExecute()
-                    bomb3_btn.checkAndExecute()
+                    for bomb_button in BombButton.instances.values():
+                        bomb_button.checkAndExecute()
 
                     if explode_btn.checkmouseover() and time.time() >= explode_time + max(Bomb.explode_durations):
-                        for bomb in Bomb.instances:
-                            calculateAreas_func = getattr(eval(bomb), "calculateAreas")
-                            calculateAreas_func()
+                        for bomb in Bomb.instances.values():
+                            bomb.calculateAreas()
                         total_score = calculateTotalScore()
                         explode_time = time.time()
                     
@@ -264,10 +262,10 @@ def selectTiles():
                 if (x,y) in active_bomb.tiles:
                     active_bomb.tiles.remove((x,y))
                 else:
-                    for key in Bomb.instances.keys():
-                        if not (x,y) in eval(key).tiles:
+                    for bomb in Bomb.instances.values():
+                        if not (x,y) in bomb.tiles:
                             continue
-                        eval(key).tiles.remove((x,y))
+                        bomb.tiles.remove((x,y))
             else:
                 selected_tiles.add((x, y))
                 active_bomb.tiles.add((x,y))
@@ -280,18 +278,18 @@ def drawStartMenu():
 
     launch_btn_size = (300, 50)
     launch_btn_location = center(launch_btn_size[0], launch_btn_size[1], window_w, window_h, "both")
-    launch_btn = Button(menu_btn_color, launch_btn_location[0], launch_btn_location[1], launch_btn_size[0], launch_btn_size[1], "Launch!", menu_btn_font, colors["start_menu"]["button-font"], instaDraw=True)
+    launch_btn = Button(menu_btn_color, launch_btn_location[0], launch_btn_location[1], launch_btn_size[0], launch_btn_size[1], "Launch!", menu_btn_font, colors["start_menu"]["button-font"], insta_draw=True)
 
     mapselect_btn_size = launch_btn_size
     mapselect_btn_location = (launch_btn_location[0], launch_btn_location[1] + 80)
-    mapselect_btn = Button(menu_btn_color, mapselect_btn_location[0], mapselect_btn_location[1], mapselect_btn_size[0], mapselect_btn_size[1], "Map selection", menu_btn_font, colors["start_menu"]["button-font"], instaDraw=True)
+    mapselect_btn = Button(menu_btn_color, mapselect_btn_location[0], mapselect_btn_location[1], mapselect_btn_size[0], mapselect_btn_size[1], "Map selection", menu_btn_font, colors["start_menu"]["button-font"], insta_draw=True)
 
 def drawMapSelect():
     global mapdict, back_button, map_queue_x_buttons_dict, map_launch_btn
     screen.fill(colors["all"]["background"])
     MapFrame.instance_num = 0
     MapFrame.row = 0
-    back_button = RoundButton(colors["all"]["back_button"]["stage1"], 20, 20, 30, 30, "<", standard_font,colors["all"]["back_button"]["font1"],[colors["all"]["back_button"]["border1"], "3"], instaDraw = True)
+    back_button = RoundButton(colors["all"]["back_button"]["stage1"], 20, 20, 30, 30, "<", standard_font,colors["all"]["back_button"]["font1"],[colors["all"]["back_button"]["border1"], "3"], insta_draw = True)
 
     mapdir = os.path.join(SELF_LOC + '/resources/maps')
     mapdict = {}
@@ -318,7 +316,7 @@ def drawMapSelect():
         x_ftext = x_text_font.render("x", True, (0,0,0)) #color does not matter
         x_ftext_width, x_ftext_height = x_ftext.get_size()
         x_ftext_y =  top_y + center(item_height = x_ftext_height, parent_height = 50, center_direction = "vertical")
-        map_queue_x_buttons_dict[mapname] = Button(colors["all"]["background"], map_queue_w - 15 - x_ftext_width, x_ftext_y, x_ftext_width, x_ftext_height, "x", x_text_font,  colors["map_select"]["queue"]["element"]["x-button"], instaDraw = True)
+        map_queue_x_buttons_dict[mapname] = Button(colors["all"]["background"], map_queue_w - 15 - x_ftext_width, x_ftext_y, x_ftext_width, x_ftext_height, "x", x_text_font,  colors["map_select"]["queue"]["element"]["x-button"], insta_draw = True)
     
     pygame.draw.line(screen, colors["map_select"]["queue"]["line"], [map_queue_w, 0], [map_queue_w, window_h], 2)
 
@@ -330,7 +328,7 @@ def drawMapSelect():
 
     map_launch_btn_size = (190, 50)
     map_launch_btn_x, map_launch_btn_y = center(item_width = map_launch_btn_size[0], parent_width = map_queue_w, center_direction="horizontal"), window_h - map_launch_btn_size[1] - 5
-    map_launch_btn = Button(colors["map_select"]["launch_btn"]["stage1"], map_launch_btn_x, map_launch_btn_y, map_launch_btn_size[0], map_launch_btn_size[1], "Launch!", standard_font,colors["map_select"]["launch_btn"]["font1"], instaDraw=True)
+    map_launch_btn = Button(colors["map_select"]["launch_btn"]["stage1"], map_launch_btn_x, map_launch_btn_y, map_launch_btn_size[0], map_launch_btn_size[1], "Launch!", standard_font,colors["map_select"]["launch_btn"]["font1"], insta_draw=True)
 
 def drawGrid():
     '''Used to draw base grid before effects'''
@@ -350,15 +348,24 @@ def drawGrid():
 def drawMenu():
     global bomb1_btn, bomb2_btn, bomb3_btn, explode_btn, next_map_btn
     pygame.draw.rect(screen,colors["all"]["background"], pygame.Rect(0, 0, MENU_WIDTH, window_h))
-    bomb1_btn = BombButton(20, 30, 100, 50,'10kT', kt10)
-    bomb2_btn = BombButton(20, 90, 100, 50,'50kT', kt50)
-    bomb3_btn = BombButton(20, 150, 100, 50,'100kT', kt100)
-    if time.time() >= explode_time + max(Bomb.explode_durations):
-        explode_btn = Button(colors["game"]["explode_btn"]["stage1"], 10, window_h - 90, 150, 50, "EXPLODE!", standard_font,colors["game"]["explode_btn"]["font1"],[colors["game"]["explode_btn"]["border1"] ,3, 4], instaDraw=True)
-    else:
-        explode_btn = Button(colors["game"]["explode_btn"]["stage2"], 10, window_h - 90, 150, 50, "EXPLODE!", standard_font,colors["game"]["explode_btn"]["font2"],[colors["game"]["explode_btn"]["border2"] ,3, 4], instaDraw=True)
+    #region BombButton drawing
+    bomb_button_y_pos = 30
+    for bomb_button in BombButton.instances.values():
+        bomb_button.x_pos = 20
+        bomb_button.y_pos = bomb_button_y_pos
+        bomb_button.width = 100
+        bomb_button.height = 50
+
+        bomb_button.draw()
+        bomb_button_y_pos += 60
     
-    next_map_btn = Button(colors["game"]["next_map_btn"]["stage1"], 10, window_h - 150, 150, 50, "Next map", standard_font,colors["game"]["next_map_btn"]["font1"],[colors["game"]["next_map_btn"]["border1"] ,3, 4], instaDraw=True)
+    #endregion
+    if time.time() >= explode_time + max(Bomb.explode_durations):
+        explode_btn = Button(colors["game"]["explode_btn"]["stage1"], 10, window_h - 90, 150, 50, "EXPLODE!", standard_font,colors["game"]["explode_btn"]["font1"],[colors["game"]["explode_btn"]["border1"] ,3, 4], insta_draw=True)
+    else:
+        explode_btn = Button(colors["game"]["explode_btn"]["stage2"], 10, window_h - 90, 150, 50, "EXPLODE!", standard_font,colors["game"]["explode_btn"]["font2"],[colors["game"]["explode_btn"]["border2"] ,3, 4], insta_draw=True)
+    
+    next_map_btn = Button(colors["game"]["next_map_btn"]["stage1"], 10, window_h - 150, 150, 50, "Next map", standard_font,colors["game"]["next_map_btn"]["font1"],[colors["game"]["next_map_btn"]["border1"] ,3, 4], insta_draw=True)
 
     # draw active-bomb text
     active_bomb_font = standard_font
@@ -381,13 +388,13 @@ def drawEfects():
         blit_x, blit_y = cordsConvert(mouse_tile_cords, True)
         screen.blit(hover_Surface,(blit_x, blit_y))
     #clicked efects
-    for key, value in Bomb.instances.items():
-        eval(key).draw()
+    for bomb in Bomb.instances.values():
+        bomb.draw()
     #explosions of bombs
     current_time = time.time()
-    for key, value in Bomb.instances.items():
-        explode_func = getattr(eval(key), "explode")
-        explode_func(current_time)
+    for bomb in Bomb.instances.values():
+        bomb.explode(current_time)
+    
 
 def registerScoreParameter(function):
     score_functions.add(function)
@@ -401,8 +408,8 @@ def calculateTotalScore():
 @registerScoreParameter
 def tilesHitScore():
     all_tiles_hit = set()
-    for key in Bomb.instances.keys():
-        all_tiles_hit.update(eval(key).explosion_area)
+    for bomb in Bomb.instances.values():
+        all_tiles_hit.update(bomb.explosion_area)
     houses_hit = mapcolors[(255, 0, 255)]  & all_tiles_hit
     industry_hit = mapcolors[(255, 0, 0)]  & all_tiles_hit
     houses_value = len(houses_hit) * 200
@@ -413,8 +420,8 @@ class Bomb(abc.ABC):
     '''This is the abc that all bombs should inherit from'''
     instances = {}
     explode_durations = []
-    def __init__(self, radius, explode_duration, tile_icon: tuple | pygame.Surface, explosion_color, instance_name:str, nickname:str = "No nickname") -> None:
-        self.instance_name = instance_name
+    def __init__(self, radius, explode_duration, tile_icon: tuple | pygame.Surface, explosion_color, key:str, nickname:str, create_button = True) -> None:
+        self.key = key
         self.nickname = nickname
         self.radius = radius
         if type(tile_icon) == str:
@@ -424,8 +431,10 @@ class Bomb(abc.ABC):
         self.tiles = set()
         self.explode_duration = explode_duration
         self.explosion_color = explosion_color
+        if create_button:
+            BombButton.instances[key] = BombButton(0,0,0,0, self.nickname, self)
 
-        Bomb.instances[self.instance_name] = [self.__class__.__name__, self.instance_name,self.nickname]
+        # Bomb.instances[self.instance_name] = [self.__class__.__name__, self.instance_name,self.nickname]
         Bomb.explode_durations.append(self.explode_duration)
 
     @abc.abstractmethod
@@ -441,8 +450,8 @@ class Bomb(abc.ABC):
         pass
 
 class ConventionalBomb(Bomb):
-    def __init__(self, radius, explode_duration, tile_icon: tuple | pygame.Surface, instance_name:str, nickname:str = "No nickname") -> None:
-        super().__init__(radius, explode_duration, tile_icon, colors["game"]["bombs"]["conventional"]["explosion-area"], instance_name, nickname)
+    def __init__(self, radius, explode_duration, tile_icon: tuple | pygame.Surface, key:str, nickname:str) -> None:
+        super().__init__(radius, explode_duration, tile_icon, colors["game"]["bombs"]["conventional"]["explosion-area"], key, nickname)
 
     def draw(self):
         if type(self.tile_icon) == tuple:
@@ -475,7 +484,7 @@ class ConventionalBomb(Bomb):
             pygame.draw.rect(screen, self.explosion_color, pygame.Rect(real_loc[0], real_loc[1],tile_size,tile_size))
 
 class Button:
-    def __init__(self, color ,x_pos: int, y_pos: int, width:int, height: int, text: str, font, font_color, border: typing.Literal["color","width","radius"]= None, instaDraw: bool = False) -> None:
+    def __init__(self, color ,x_pos: int, y_pos: int, width:int, height: int, text: str, font, font_color, border: typing.Literal["color","width","radius"]= None, insta_draw: bool = False) -> None:
         self.color = strtoRGB(color)
         self.x_pos = x_pos
         self.y_pos = y_pos
@@ -491,7 +500,7 @@ class Button:
             self.border[1] = int(self.border[1])
             self.border[2] = int(self.border[2])
 
-        if instaDraw == True:
+        if insta_draw == True:
             self.draw()
 
     def draw(self) -> None:
@@ -512,8 +521,8 @@ class Button:
 
 class RoundButton(Button):
     """Draws a button as an ellipse"""
-    def __init__(self, color, x_pos: int, y_pos: int, width: int, height: int, text: str, font, font_color, border: typing.Literal['color', 'width'] = None, instaDraw: bool = False) -> None:
-        super().__init__(color, x_pos, y_pos, width, height, text, font, font_color, [*border, 0], instaDraw)
+    def __init__(self, color, x_pos: int, y_pos: int, width: int, height: int, text: str, font, font_color, border: typing.Literal['color', 'width'] = None, insta_draw: bool = False) -> None:
+        super().__init__(color, x_pos, y_pos, width, height, text, font, font_color, [*border, 0], insta_draw)
         
         # math from https://stackoverflow.com/questions/59971407/how-can-i-test-if-a-point-is-in-an-ellipse
         self.semi_axis_a = self.width // 2
@@ -531,8 +540,6 @@ class RoundButton(Button):
         self.text_centered_y = self.y_pos + center(item_height = self.text_height, parent_height = self.height, center_direction = 'vertical')
         screen.blit(self.ftext, (self.text_centered_x, self.text_centered_y))
 
-
-    
     def checkmouseover(self) -> bool:
         dx = mouse_pos[0] - self.cpt_x
         dy = (mouse_pos[1] - self.cpt_y) * self.scale_y
@@ -544,15 +551,16 @@ class RoundButton(Button):
             return False
 
 class BombButton(Button):
-    '''Use this class to make any BomButtons so that they all have certain atributes the same'''
-    def __init__(self, x_pos: int, y_pos: int, width: int, height: int, text: str, bombinstance: type[Bomb]) -> None:
-        super().__init__(colors["game"]["bomb-buttons"]["conventional"]["stage1"], x_pos, y_pos, width, height, text,standard_font,colors["game"]["bomb-buttons"]["conventional"]["font1"], instaDraw=True)
+    '''Use this class to make any BombButtons so that they all have certain atributes the same'''
+    instances = {}
+    def __init__(self, x_pos: int, y_pos: int, width: int, height: int, text: str, bombinstance: type[Bomb], insta_draw = False) -> None:
+        super().__init__(colors["game"]["bomb-buttons"]["conventional"]["stage1"], x_pos, y_pos, width, height, text,standard_font,colors["game"]["bomb-buttons"]["conventional"]["font1"], insta_draw = insta_draw)
         self.bombinstance = bombinstance
 
     def onclick(self):
         global active_bomb_text, active_bomb
-        active_bomb_text = self.text
-        active_bomb = self.bombinstance
+        active_bomb_text = self.bombinstance.nickname
+        active_bomb = Bomb.instances[self.bombinstance.key]
 
     def checkAndExecute(self):
         if super().checkmouseover():
