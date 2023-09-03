@@ -2,8 +2,9 @@
     "all" : {
         "background" : [41, 71, 46],
         "back_button" : {
-            "border" : [110, 107, 107],
-            "fill" : [15, 15, 15]
+            "stage1" : [15, 15, 15],
+            "font1" : [255, 255, 255],
+            "border1" : [110, 107, 107]
         }
     },
     "start_menu" : {
@@ -11,9 +12,48 @@
         "button-font" : [255, 255, 255]
     },
     "map_select" : {
-        "map-frame" : [79, 53, 105]
+        "map-frame" : [79, 53, 105],
+        "launch_btn" : {
+            "stage1" : [255, 0, 0],
+            "font1" : [255, 255, 255]
+        },
+        "queue" : {
+            "line" : [255, 255, 255],
+            "element" : {
+                "border" : [255, 255, 255],
+                "text" : [255, 255, 255],
+                "x-button" : [255, 255, 255]
+            }
+        }
     },
     "game" : {
-
+        "grid-border" : [255, 255, 255],
+        "grid-hover" : [255, 0, 0],
+        "explode_btn" : {
+            "stage1" : [0, 255, 0],
+            "font1" : [0,0,0],
+            "border1" : [255, 255, 255],
+            "stage2" : [255, 0, 0],
+            "font2" : [0,0,0],
+            "border2" : [255, 255, 255]
+        },
+        "next_map_btn" : {
+            "stage1" : [73, 94, 128],
+            "border1" : [255, 255, 255],
+            "font1" : [0, 0, 0]
+        },
+        "active_bomb-font" : [255, 255, 255],
+        "total_score-font" : [255, 255, 255],
+        "bombs" : {
+            "conventional" : {
+                "explosion-area" : [255, 102, 0]
+            }
+        },
+        "bomb-buttons" : {
+            "conventional" : {
+                "stage1" : [75, 83, 32],
+                "font1" : [0, 0, 0]
+            }
+        }
     }
 }

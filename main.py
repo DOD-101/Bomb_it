@@ -10,14 +10,12 @@ import uuid
 import random
 import json
 
-from colorama import Fore, init
 from PIL import Image
 from utils import utils
 from utils import map_utils
 center = utils.center
 strtoRGB = utils.strToRGB
 
-init()
 
 window_w = 1000
 window_h = 300
@@ -52,16 +50,14 @@ def main():
 
     running = "start"
 
-    with open('color.json') as json_file:
-        colors = json.load(json_file)
-    
-        print("Type:", type(colors))
 
     selecting = False
     game_clock = pygame.time.Clock()
     first_draw = True
     while not running == "quit":
         mouse_pos = pygame.mouse.get_pos()
+        with open('color.json') as json_file:
+            colors = json.load(json_file)
         if running == "start":
             drawStartMenu()
             for event in pygame.event.get():
@@ -177,6 +173,7 @@ def main():
 
                 if event.type == pygame.VIDEORESIZE:
                     onWindowScale(event)
+                    getTileSize()
                     continue
 
             rscreen.blit(screen, (0,0))
@@ -194,7 +191,6 @@ def onWindowScale(event):
     screen = pygame.transform.scale(screen, (window_w, window_h))
     screen.fill(colors["all"]["background"])
 
-    getTileSize()
 
 def getTileSize():
     global tile_size
@@ -282,22 +278,22 @@ def drawStartMenu():
     global launch_btn, mapselect_btn
     screen.fill(colors["all"]["background"])
     menu_btn_font = pygame.font.SysFont("Cooper Black", 40)
-    menu_btn_color = (102, 153, 153)
+    menu_btn_color = colors["start_menu"]["button-background"]
 
     launch_btn_size = (300, 50)
     launch_btn_location = center(launch_btn_size[0], launch_btn_size[1], window_w, window_h, "both")
-    launch_btn = Button(menu_btn_color, launch_btn_location[0], launch_btn_location[1], launch_btn_size[0], launch_btn_size[1], "Launch!", menu_btn_font,"white", instaDraw=True)
+    launch_btn = Button(menu_btn_color, launch_btn_location[0], launch_btn_location[1], launch_btn_size[0], launch_btn_size[1], "Launch!", menu_btn_font, colors["start_menu"]["button-font"], instaDraw=True)
 
     mapselect_btn_size = launch_btn_size
     mapselect_btn_location = (launch_btn_location[0], launch_btn_location[1] + 80)
-    mapselect_btn = Button(menu_btn_color, mapselect_btn_location[0], mapselect_btn_location[1], mapselect_btn_size[0], mapselect_btn_size[1], "Map selection", menu_btn_font, "white", instaDraw=True)
+    mapselect_btn = Button(menu_btn_color, mapselect_btn_location[0], mapselect_btn_location[1], mapselect_btn_size[0], mapselect_btn_size[1], "Map selection", menu_btn_font, colors["start_menu"]["button-font"], instaDraw=True)
 
 def drawMapSelect():
     global mapdict, back_button, map_queue_x_buttons_dict, map_launch_btn
     screen.fill(colors["all"]["background"])
     MapFrame.instance_num = 0
     MapFrame.row = 0
-    back_button = RoundButton(colors["all"]["back_button"]["fill"], 20, 20, 30, 30, "<", standard_font,'white',[colors["all"]["back_button"]["border"], "3"], instaDraw = True)
+    back_button = RoundButton(colors["all"]["back_button"]["stage1"], 20, 20, 30, 30, "<", standard_font,colors["all"]["back_button"]["font1"],[colors["all"]["back_button"]["border1"], "3"], instaDraw = True)
 
     mapdir = os.path.join(SELF_LOC + '/resources/maps')
     mapdict = {}
@@ -311,22 +307,22 @@ def drawMapSelect():
     map_queue_x_buttons_dict = {}
     map_queue_element_height = 50
     def draw_map_queue_element(top_y: int, mapname: str):
-        pygame.draw.rect(screen, strtoRGB("white"), [5, top_y, map_queue_w - 10, map_queue_element_height], 1)
+        pygame.draw.rect(screen, colors["map_select"]["queue"]["element"]["border"], [5, top_y, map_queue_w - 10, map_queue_element_height], 1)
         mapname_text_font = standard_font
         mapname_text = mapname.rpartition('_')[0]
-        mapname_ftext = mapname_text_font.render(mapname_text, True, (255, 255, 255))
+        mapname_ftext = mapname_text_font.render(mapname_text, True, colors["map_select"]["queue"]["element"]["text"])
         mapname_width, mapname_height = mapname_ftext.get_size()
         mapname_y = top_y + center(item_height = mapname_height, parent_height = 50, center_direction = "vertical")
         screen.blit(mapname_ftext, [10, mapname_y])
 
         # X button
         x_text_font = standard_font
-        x_ftext = x_text_font.render("x", True, (255,255,255))
+        x_ftext = x_text_font.render("x", True, (0,0,0)) #color does not matter
         x_ftext_width, x_ftext_height = x_ftext.get_size()
         x_ftext_y =  top_y + center(item_height = x_ftext_height, parent_height = 50, center_direction = "vertical")
-        map_queue_x_buttons_dict[mapname] = Button(colors["all"]["background"], map_queue_w - 15 - x_ftext_width, x_ftext_y, x_ftext_width, x_ftext_height, "x", x_text_font, "white", instaDraw = True)
+        map_queue_x_buttons_dict[mapname] = Button(colors["all"]["background"], map_queue_w - 15 - x_ftext_width, x_ftext_y, x_ftext_width, x_ftext_height, "x", x_text_font,  colors["map_select"]["queue"]["element"]["x-button"], instaDraw = True)
     
-    pygame.draw.line(screen, "white", [map_queue_w, 0], [map_queue_w, window_h], 2)
+    pygame.draw.line(screen, colors["map_select"]["queue"]["line"], [map_queue_w, 0], [map_queue_w, window_h], 2)
 
     top_y = 100
     for map in map_queue:
@@ -336,7 +332,7 @@ def drawMapSelect():
 
     map_launch_btn_size = (190, 50)
     map_launch_btn_x, map_launch_btn_y = center(item_width = map_launch_btn_size[0], parent_width = map_queue_w, center_direction="horizontal"), window_h - map_launch_btn_size[1] - 5
-    map_launch_btn = Button("red", map_launch_btn_x, map_launch_btn_y, map_launch_btn_size[0], map_launch_btn_size[1], "Launch!", standard_font,"white", instaDraw=True)
+    map_launch_btn = Button(colors["map_select"]["launch_btn"]["stage1"], map_launch_btn_x, map_launch_btn_y, map_launch_btn_size[0], map_launch_btn_size[1], "Launch!", standard_font,colors["map_select"]["launch_btn"]["font1"], instaDraw=True)
 
 def drawGrid():
     '''Used to draw base grid before effects'''
@@ -348,7 +344,7 @@ def drawGrid():
         for y in range(0, immap.size[1]*tile_size, tile_size):
             rect = pygame.Rect(x, y, tile_size, tile_size)
             pygame.draw.rect(screen, pxmap[pix_x,pix_y], rect)
-            pygame.draw.rect(screen, (255,255,255), rect, 1)
+            pygame.draw.rect(screen, colors["game"]["grid-border"], rect, 1)
             pix_y += 1
         pix_x += 1
         pix_y = 0
@@ -360,21 +356,21 @@ def drawMenu():
     bomb2_btn = BombButton(20, 90, 100, 50,'50kT', kt50)
     bomb3_btn = BombButton(20, 150, 100, 50,'100kT', kt100)
     if time.time() >= explode_time + max(Bomb.explode_durations):
-        explode_btn = Button('green', 10, window_h - 90, 150, 50, "EXPLODE!", standard_font,'black',[ 'white',3, 4], instaDraw=True)
+        explode_btn = Button(colors["game"]["explode_btn"]["stage1"], 10, window_h - 90, 150, 50, "EXPLODE!", standard_font,colors["game"]["explode_btn"]["font1"],[colors["game"]["explode_btn"]["border1"] ,3, 4], instaDraw=True)
     else:
-        explode_btn = Button('red', 10, window_h - 90, 150, 50, "EXPLODE!", standard_font,'black',[ 'white',3, 4], instaDraw=True)
+        explode_btn = Button(colors["game"]["explode_btn"]["stage2"], 10, window_h - 90, 150, 50, "EXPLODE!", standard_font,colors["game"]["explode_btn"]["font2"],[colors["game"]["explode_btn"]["border2"] ,3, 4], instaDraw=True)
     
-    next_map_btn = Button((73, 94, 128), 10, window_h - 150, 150, 50, "Next map", standard_font,'black',[ 'white',3, 4], instaDraw=True)
+    next_map_btn = Button(colors["game"]["next_map_btn"]["stage1"], 10, window_h - 150, 150, 50, "Next map", standard_font,colors["game"]["next_map_btn"]["font1"],[colors["game"]["next_map_btn"]["border1"] ,3, 4], instaDraw=True)
 
     # draw active-bomb text
     active_bomb_font = standard_font
-    active_bomb_font_color = strtoRGB('white')
+    active_bomb_font_color = colors["game"]["active_bomb-font"]
     active_bomb_ftext = active_bomb_font.render(active_bomb_text, True, active_bomb_font_color)
     pygame.draw.rect(screen, colors["all"]["background"], [0, window_h-30, 190, 30])
     screen.blit(active_bomb_ftext, (20, window_h - 20))
     # draw score text
     total_score_font = active_bomb_font
-    total_score_font_color = active_bomb_font_color
+    total_score_font_color = colors["game"]["total_score-font"]
     total_score_ftext = total_score_font.render(f"Score:{total_score}", True, total_score_font_color)
     screen.blit(total_score_ftext, (20, window_h - 200))
 
@@ -383,7 +379,7 @@ def drawEfects():
     if mouse_pos[0] > grid_start:
         hover_Surface = pygame.Surface((tile_size, tile_size))
         hover_Surface.set_alpha(128)
-        hover_Surface.fill((255,0,0))
+        hover_Surface.fill(colors["game"]["grid-hover"])
         blit_x, blit_y = cordsConvert(mouse_tile_cords, True)
         screen.blit(hover_Surface,(blit_x, blit_y))
     #clicked efects
@@ -448,7 +444,7 @@ class Bomb(abc.ABC):
 
 class ConventionalBomb(Bomb):
     def __init__(self, radius, explode_duration, tile_icon: tuple | pygame.Surface, instance_name:str, nickname:str = "No nickname") -> None:
-        super().__init__(radius, explode_duration, tile_icon, strtoRGB('explosionorange'), instance_name, nickname)
+        super().__init__(radius, explode_duration, tile_icon, colors["game"]["bombs"]["conventional"]["explosion-area"], instance_name, nickname)
 
     def draw(self):
         if type(self.tile_icon) == tuple:
@@ -478,7 +474,7 @@ class ConventionalBomb(Bomb):
             return None
         for explosion_effect in self.explosion_area:
             real_loc = cordsConvert(explosion_effect, True)
-            pygame.draw.rect(screen, strtoRGB('explosionorange'), pygame.Rect(real_loc[0], real_loc[1],tile_size,tile_size))
+            pygame.draw.rect(screen, self.explosion_color, pygame.Rect(real_loc[0], real_loc[1],tile_size,tile_size))
 
 class Button:
     def __init__(self, color ,x_pos: int, y_pos: int, width:int, height: int, text: str, font, font_color, border: typing.Literal["color","width","radius"]= None, instaDraw: bool = False) -> None:
@@ -552,7 +548,7 @@ class RoundButton(Button):
 class BombButton(Button):
     '''Use this class to make any BomButtons so that they all have certain atributes the same'''
     def __init__(self, x_pos: int, y_pos: int, width: int, height: int, text: str, bombinstance: type[Bomb]) -> None:
-        super().__init__('armygreen', x_pos, y_pos, width, height, text,standard_font,'black', instaDraw=True)
+        super().__init__(colors["game"]["bomb-buttons"]["conventional"]["stage1"], x_pos, y_pos, width, height, text,standard_font,colors["game"]["bomb-buttons"]["conventional"]["font1"], instaDraw=True)
         self.bombinstance = bombinstance
 
     def onclick(self):
@@ -608,6 +604,8 @@ class MapFrame:
         if self.checkmouseover() == True:
             self.onclick()
 if __name__=="__main__":
+    with open('color.json') as json_file:
+        colors = json.load(json_file)
     SELF_LOC = os.path.dirname(os.path.realpath(__file__))
     MENU_WIDTH = 200
     selected_tiles = set()
