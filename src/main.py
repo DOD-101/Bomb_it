@@ -1,6 +1,3 @@
-import pygame
-import pygame_widgets as pyw
-
 import abc
 import time
 import os
@@ -10,9 +7,15 @@ import uuid
 import random
 import json
 
+import pygame
+# import pygame_widgets as pyw
+
+
 from PIL import Image
 from utils import utils
 from utils import map_utils
+from utils.gamestage_enum import GameStage
+
 center = utils.center
 strtoRGB = utils.strToRGB
 
@@ -22,9 +25,9 @@ window_h = 300
 score_functions = set()
 
 def main():
-    global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, explode_time, \
-          window_w, window_h, grid_start, grid_bottom, map_row_lengh, map_queue, map_queue_x_buttons_dict, standard_font, immap, total_score, mapcolors, \
-          colors
+    global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, \
+            explode_time, window_w, window_h, grid_start, grid_bottom, map_row_lengh, map_queue,\
+            map_queue_x_buttons_dict, standard_font, immap, total_score, mapcolors, colors
     pygame.init()
     pygame.display.set_caption("Bomb It!")
     standard_font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
@@ -35,7 +38,7 @@ def main():
     screen = pygame.Surface((1000, 1000))
     rscreen = pygame.display.set_mode((window_w, window_h), pygame.RESIZABLE)
     # Bombs
-    kt10_img = pygame.image.load(os.path.join(SELF_LOC, "resources\\bomb_icons\\conventional\\test.png")).convert()
+    kt10_img = pygame.image.load(os.path.join(SELF_LOC, "..\\resources\\bomb_icons\\conventional\\test.png")).convert()
     Bomb.instances["kt10"] = ConventionalBomb(0, 3,kt10_img, "kt10", "G-kt10")
     Bomb.instances["kt50"] = ConventionalBomb(2, 3,(255, 102, 255), "kt50", "G-kt50")
     Bomb.instances["kt100"] = ConventionalBomb(5, 3,(102, 255, 102), "kt100", "G-kt100")
@@ -66,8 +69,8 @@ def main():
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if launch_btn.checkmouseover():
                         running = "game"
-                        
-                    
+
+
                     if mapselect_btn.checkmouseover():
                         running = "map_select"
 
@@ -87,7 +90,7 @@ def main():
                 if event.type == pygame.QUIT:
                     running = "quit"
                     break
-                
+
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if map_launch_btn.checkmouseover():
                         running = "game"
@@ -102,12 +105,12 @@ def main():
 
                     if back_button.checkmouseover():
                         running = "start"
-                    
+
                 if event.type == pygame.VIDEORESIZE:
                     onWindowScale(event)
 
                     continue
-            
+
             rscreen.blit(screen, (0,0))
             pygame.display.flip()
 
@@ -117,15 +120,15 @@ def main():
                 file_name = map_queue[0].rpartition('_')[0] + ".png"
             elif first_draw:
                 possible_maps = []
-                for map in  os.listdir("resources\maps"):
-                    file_ending = re.search(r".*(\..*)$", map).group(1)
+                for current_map in  os.listdir("resources\maps"):
+                    file_ending = re.search(r".*(\..*)$", current_map).group(1)
                     if not file_ending == ".png":
                         continue
-                    possible_maps.append(map)
+                    possible_maps.append(current_map)
                 file_name = possible_maps[random.randint(0, len(possible_maps) - 1)]
 
-                    
-            immap = Image.open(os.path.join(SELF_LOC, "resources\maps", file_name))
+
+            immap = Image.open(os.path.join(SELF_LOC, "..\\resources\maps", file_name))
             mapcolors = map_utils.px_to_colordict(immap, [(0, 255, 0),(0, 0, 255),(255, 0, 255),(255, 0, 0),(0,0,0),(255, 255, 0)])
             getTileSize()
             grid_start = window_w - immap.size[0] * tile_size
@@ -150,7 +153,7 @@ def main():
                             bomb.calculateAreas()
                         total_score = calculateTotalScore()
                         explode_time = time.time()
-                    
+
                     if next_map_btn.checkmouseover():
                         if not len(map_queue) == 0:
                             del map_queue[0]
@@ -195,7 +198,7 @@ def getTileSize():
     else:
         tile_size = (window_w - MENU_WIDTH) / immap.size[0]
 
-    tile_size = int(tile_size) if int(tile_size) >= 1 else 1 
+    tile_size = int(tile_size) if int(tile_size) >= 1 else 1
 
 def cordsConvert(cord: set | list | tuple, to_normal: bool = False):
     '''If to_normal is False will convert given cordinates to tile-cords. Else will do in reverse. Read notes on reverse.'''
@@ -249,7 +252,7 @@ def selectTiles():
         x1, x2 = x2, x1
     if y2 > y1:
         y1, y2 = y2, y1
-    converted_pos1 = cordsConvert((x1,y1), True) 
+    converted_pos1 = cordsConvert((x1,y1), True)
     converted_pos2 = cordsConvert((x2,y2), True)
     if converted_pos1[0] < grid_start or converted_pos1[1] >= grid_bottom or converted_pos2[1] >= grid_bottom:
         return None
@@ -291,14 +294,14 @@ def drawMapSelect():
     MapFrame.row = 0
     back_button = RoundButton(colors["all"]["back_button"]["stage1"], 20, 20, 30, 30, "<", standard_font,colors["all"]["back_button"]["font1"],[colors["all"]["back_button"]["border1"], "3"], insta_draw = True)
 
-    mapdir = os.path.join(SELF_LOC + '/resources/maps')
+    mapdir = os.path.join(SELF_LOC,'../resources/maps')
     mapdict = {}
     for map in os.listdir(mapdir):
         file_ending = re.search(r".*(\..*)$", map).group(1)
         if not file_ending == ".png":
-            continue 
+            continue
         mapdict[map] = MapFrame(colors["map_select"]["map-frame"], os.path.join(mapdir, map), map.removesuffix(file_ending))
-    
+
     #region Map queue
     map_queue_x_buttons_dict = {}
     map_queue_element_height = 50
@@ -317,7 +320,7 @@ def drawMapSelect():
         x_ftext_width, x_ftext_height = x_ftext.get_size()
         x_ftext_y =  top_y + center(item_height = x_ftext_height, parent_height = 50, center_direction = "vertical")
         map_queue_x_buttons_dict[mapname] = Button(colors["all"]["background"], map_queue_w - 15 - x_ftext_width, x_ftext_y, x_ftext_width, x_ftext_height, "x", x_text_font,  colors["map_select"]["queue"]["element"]["x-button"], insta_draw = True)
-    
+
     pygame.draw.line(screen, colors["map_select"]["queue"]["line"], [map_queue_w, 0], [map_queue_w, window_h], 2)
 
     top_y = 100
@@ -358,13 +361,13 @@ def drawMenu():
 
         bomb_button.draw()
         bomb_button_y_pos += 60
-    
+
     #endregion
     if time.time() >= explode_time + max(Bomb.explode_durations):
         explode_btn = Button(colors["game"]["explode_btn"]["stage1"], 10, window_h - 90, 150, 50, "EXPLODE!", standard_font,colors["game"]["explode_btn"]["font1"],[colors["game"]["explode_btn"]["border1"] ,3, 4], insta_draw=True)
     else:
         explode_btn = Button(colors["game"]["explode_btn"]["stage2"], 10, window_h - 90, 150, 50, "EXPLODE!", standard_font,colors["game"]["explode_btn"]["font2"],[colors["game"]["explode_btn"]["border2"] ,3, 4], insta_draw=True)
-    
+
     next_map_btn = Button(colors["game"]["next_map_btn"]["stage1"], 10, window_h - 150, 150, 50, "Next map", standard_font,colors["game"]["next_map_btn"]["font1"],[colors["game"]["next_map_btn"]["border1"] ,3, 4], insta_draw=True)
 
     # draw active-bomb text
@@ -394,7 +397,6 @@ def drawEfects():
     current_time = time.time()
     for bomb in Bomb.instances.values():
         bomb.explode(current_time)
-    
 
 def registerScoreParameter(function):
     score_functions.add(function)
@@ -440,7 +442,7 @@ class Bomb(abc.ABC):
     @abc.abstractmethod
     def draw(self):
         pass
-    
+
     @abc.abstractmethod
     def calculateAreas(self):
         pass
@@ -466,7 +468,7 @@ class ConventionalBomb(Bomb):
                 screen.blit(tile_icon_scaled, (real_loc[0], real_loc[1]))
         else:
             raise TypeError(f"Invalid type '{type(self.tile_icon)}' for self.tile_icon")
-    	
+
     def calculateAreas(self):
         """This bomb type has only 1 Area: explosion_area"""
         self.explosion_area: set[tuple[int,int]] = set()
@@ -523,12 +525,12 @@ class RoundButton(Button):
     """Draws a button as an ellipse"""
     def __init__(self, color, x_pos: int, y_pos: int, width: int, height: int, text: str, font, font_color, border: typing.Literal['color', 'width'] = None, insta_draw: bool = False) -> None:
         super().__init__(color, x_pos, y_pos, width, height, text, font, font_color, [*border, 0], insta_draw)
-        
+
         # math from https://stackoverflow.com/questions/59971407/how-can-i-test-if-a-point-is-in-an-ellipse
         self.semi_axis_a = self.width // 2
         self.semi_axis_b = self.width // 2
         self.scale_y = self.semi_axis_a / self.semi_axis_b
-        self.cpt_x, self.cpt_y = self.x_pos + self.width / 2, self.y_pos + self.height / 2 
+        self.cpt_x, self.cpt_y = self.x_pos + self.width / 2, self.y_pos + self.height / 2
 
     def draw(self) -> None:
         pygame.draw.ellipse(screen, self.color, [self.x_pos, self.y_pos, self.width,self.height])
@@ -576,16 +578,16 @@ class MapFrame:
         self.x_pos, self.y_pos= self._get_pos()
         self.frame_color = strtoRGB(frame_color)
         self.map_path = map_path
-        
+
         self.draw()
-    
+
     def _get_pos(self):
         instance_num = MapFrame.instance_num
         row = 0
         while instance_num > map_row_lengh:
             instance_num -= map_row_lengh
-            row += 1    
-            
+            row += 1
+
         cords = [instance_num, row]
         converted_cords = [map_queue_w + 20 + (20 + self.size) * cords[0], 20 + (20 + self.size) * cords[1]]
         return converted_cords
@@ -596,7 +598,7 @@ class MapFrame:
         map_preview = pygame.transform.scale(map_preview, (160, 160))
         pygame.draw.rect(screen, self.frame_color, frame)
         screen.blit(map_preview, (self.x_pos + 20, self.y_pos + 20))
-    
+
     def checkmouseover(self) -> bool:
         if self.x_pos <= mouse_pos[0] <= self.x_pos + self.size and self.y_pos <= mouse_pos[1] <= self.y_pos + self.size:
             return True
