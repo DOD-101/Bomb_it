@@ -1,5 +1,5 @@
 """
-Implements 2 functions general use functions.
+Implements general-use functions.
 
 Status: In use / needs reworking
 
@@ -47,7 +47,7 @@ def cordsConvert(cord: set | list | tuple, tile_size, grid_start, to_normal: boo
             cord = cord_list
             break
     if to_normal == True:
-        '''Does not give exact location of mouse, but rather starting location of tile (aka. top left corner). Unless provided tile cords are acurrate floates.'''
+        #Does not give exact location of mouse, but rather starting location of tile (aka. top left corner). Unless provided tile cords are acurrate floates.
         for c in cord:
             c_type = type(c)
             c_clone = list(c)
@@ -99,4 +99,3 @@ def strToRGB(colorStr: str) -> tuple:
             case(_):
                 raise ValueError(f"Color str:{colorStr} doesn't exist!")
     return colorStr
-

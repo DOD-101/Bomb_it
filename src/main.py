@@ -9,7 +9,10 @@ import json
 
 import pygame
 # import pygame_widgets as pyw
+pygame.init()
+from shared import init
 
+init()
 
 from PIL import Image
 from utils import utils
@@ -28,7 +31,7 @@ def main():
     global screen, mouse_pos, active_bomb_text, active_bomb, selection, kt10, kt50, kt100, \
             explode_time, window_w, window_h, grid_start, grid_bottom, map_row_lengh, map_queue,\
             map_queue_x_buttons_dict, standard_font, immap, total_score, mapcolors, colors
-    pygame.init()
+    # pygame.init()
     pygame.display.set_caption("Bomb It!")
     standard_font = pygame.font.SysFont('Bahnschrift SemiBold', 30)
 
@@ -51,28 +54,27 @@ def main():
 
     total_score = 100
 
-    running = "start"
-
+    stage = GameStage.START
 
     selecting = False
     game_clock = pygame.time.Clock()
     first_draw = True
-    while not running == "quit":
+    while stage != GameStage.QUIT :
         mouse_pos = pygame.mouse.get_pos()
-        if running == "start":
+        if stage == GameStage.START:
             drawStartMenu()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = "quit"
+                    stage = GameStage.QUIT
                     break
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if launch_btn.checkmouseover():
-                        running = "game"
+                        stage = GameStage.GAME
 
 
                     if mapselect_btn.checkmouseover():
-                        running = "map_select"
+                        stage = GameStage.MAP_SELECT
 
                 if event.type == pygame.VIDEORESIZE:
                     onWindowScale(event)
@@ -82,18 +84,18 @@ def main():
             rscreen.blit(screen, (0,0))
             pygame.display.flip()
 
-        if running == "map_select":
+        if stage == GameStage.MAP_SELECT:
 
 
             drawMapSelect()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = "quit"
+                    stage = GameStage.QUIT
                     break
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if map_launch_btn.checkmouseover():
-                        running = "game"
+                        stage = GameStage.GAME
                         break
 
                     for map in mapdict.keys():
@@ -104,7 +106,7 @@ def main():
                             map_queue.remove(x_button)
 
                     if back_button.checkmouseover():
-                        running = "start"
+                        stage = GameStage.START
 
                 if event.type == pygame.VIDEORESIZE:
                     onWindowScale(event)
@@ -115,7 +117,7 @@ def main():
             pygame.display.flip()
 
 
-        if running == "game":
+        if stage == GameStage.GAME:
             if not len(map_queue) == 0:
                 file_name = map_queue[0].rpartition('_')[0] + ".png"
             elif first_draw:
@@ -141,7 +143,7 @@ def main():
             # event handling, gets all events from the event queue
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = "quit"
+                    stage = GameStage.QUIT
                     break
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -612,9 +614,9 @@ class MapFrame:
         if self.checkmouseover() == True:
             self.onclick()
 if __name__=="__main__":
-    with open('../color.json') as json_file:
-        colors = json.load(json_file)
     SELF_LOC = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(SELF_LOC, '../color.json')) as json_file:
+        colors = json.load(json_file)
     MENU_WIDTH = 200
     selected_tiles = set()
     explode_time = 1
