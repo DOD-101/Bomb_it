@@ -612,7 +612,7 @@ class MapFrame:
         if self.checkmouseover() == True:
             self.onclick()
 if __name__=="__main__":
-    with open('color.json') as json_file:
+    with open('../color.json') as json_file:
         colors = json.load(json_file)
     SELF_LOC = os.path.dirname(os.path.realpath(__file__))
     MENU_WIDTH = 200

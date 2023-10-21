@@ -1,9 +1,15 @@
+"""
+Implements 2 functions for working with map images.
+
+Status: In use
+"""
+
 from PIL import Image
 import os
 
-def convert_dir_to_rgb(dir: str, make_copy: bool = True, convert_all: bool = False):
+def convert_dir_to_rgb(dir: str, make_copy: bool = True, convert_all: bool = False) -> None:
     """Converts all .png files in a dir to use the RGB color mode.
-    dir must be an absolute path. 
+    dir must be an absolute path.
     If make_copy is set to False it will simply override all the files otherwise it will make a copy with the filename prefixed by "rgb_\"
     If convert_all is set to True it will convert all images, including those which are already RGB.
     """
@@ -18,13 +24,13 @@ def convert_dir_to_rgb(dir: str, make_copy: bool = True, convert_all: bool = Fal
                     else:
                         rgb_image.save(os.path.join(dir, f"{filename}"))
 
-def px_to_colordict(image: Image.Image, allowed_colors: list | set == None):
-    """Return a dict with the keys being the color and each keys value being a set with the cords of all pixels that have that color. 
-    If allowed_colors is left as None all colors will be allow otherwise it will only add colors to the dict which have one of those colors. 
+def px_to_colordict(image: Image.Image, allowed_colors: list | set == None) -> dict:
+    """Return a dict with the keys being the color and each keys value being a set with the cords of all pixels that have that color.
+    If allowed_colors is left as None all colors will be allow otherwise it will only add colors to the dict which have one of those colors.
     All values entered and returned must be/are RGB."""
-    image = image.convert("RGB")        
+    image = image.convert("RGB")
     px = image.load()
-    
+
     colordict = {}
     for x in range(image.size[0]):
         for y in range(image.size[1]):
@@ -33,6 +39,6 @@ def px_to_colordict(image: Image.Image, allowed_colors: list | set == None):
                     colordict[px[x,y]].add((x,y))
                 else:
                     colordict[px[x,y]] = set((x,y))
-    
+
     return colordict
 
