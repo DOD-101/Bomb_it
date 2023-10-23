@@ -1,7 +1,7 @@
 """
 Implements the enums for different game stages.
 
-Status: Waiting to be used.
+Status: Working
 """
 
 from enum import IntEnum, auto

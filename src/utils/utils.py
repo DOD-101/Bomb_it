@@ -1,14 +1,14 @@
 """
 Implements general-use functions.
 
-Status: In use / needs reworking
+Status: Working
 
 """
 
 import typing
 
 from pygame.mouse import get_pos as pyget_mouse_pos
-from shared import MENU_WIDTH
+import shared
 
 def center(item_width: float | int = 0, item_height: float | int = 0, parent_width: float | int = 0, parent_height: float | int = 0, center_direction: typing.Literal["horizontal", "vertical", "both"] = "both"):
     """Centers an item within "parent\" item."""
@@ -28,15 +28,15 @@ def center(item_width: float | int = 0, item_height: float | int = 0, parent_wid
             raise ValueError(f"{center_direction} is an invalid value for center_direction")
 
 def getTileSize(window_w, window_h, immap):
-    if window_w - MENU_WIDTH >= window_h:
+    if window_w - shared.MENU_WIDTH >= window_h:
         tile_size = window_h / immap.size[1]
     else:
-        tile_size = (window_w - MENU_WIDTH) / immap.size[0]
+        tile_size = (window_w - shared.MENU_WIDTH) / immap.size[0]
 
     tile_size = int(tile_size) if int(tile_size) >= 1 else 1
     return tile_size
 
-def cordsConvert(cord: set | list | tuple, tile_size, grid_start, to_normal: bool = False,):
+def cordsConvert(cord: set | list | tuple, tile_size, to_normal: bool = False,):
     '''If to_normal is False will convert given cordinates to tile-cords. Else will do in reverse. Read notes on reverse.'''
     new_cord = []
     cord_type = type(cord)
@@ -51,7 +51,7 @@ def cordsConvert(cord: set | list | tuple, tile_size, grid_start, to_normal: boo
         for c in cord:
             c_type = type(c)
             c_clone = list(c)
-            c_clone[0] = (c_clone[0] * tile_size) + grid_start
+            c_clone[0] = (c_clone[0] * tile_size) + shared.grid_start
             c_clone[1] =  c_clone[1] * tile_size
             c_clone = c_type(c_clone)
             new_cord.append(c_clone)
@@ -59,7 +59,7 @@ def cordsConvert(cord: set | list | tuple, tile_size, grid_start, to_normal: boo
         for c in cord:
             c_type = type(c)
             c_clone = list(c)
-            c_clone[0] = int((c_clone[0] - grid_start) / tile_size)
+            c_clone[0] = int((c_clone[0] - shared.grid_start) / tile_size)
             c_clone[1] = int(c_clone[1] / tile_size)
             c_clone = c_type(c_clone)
             new_cord.append(c_clone)
@@ -69,12 +69,12 @@ def cordsConvert(cord: set | list | tuple, tile_size, grid_start, to_normal: boo
     new_cord = cord_type(new_cord[0])
     return new_cord
 
-def mouseTilecords(grid_start) -> None:
+def mouseTilecords():
     '''Gets the position of the mouse and converts it to tile-cordinates'''
-    if mouse_pos[0] < grid_start:
-        mouse_tile_cords = [0,0]
     mouse_pos = pyget_mouse_pos()
-    mouse_tile_cords = cordsConvert(mouse_pos)
+    if mouse_pos[0] < shared.grid_start:
+        mouse_tile_cords = [0,0]
+    mouse_tile_cords = cordsConvert(mouse_pos, shared.tile_size)
     return mouse_tile_cords
 
 def strToRGB(colorStr: str) -> tuple:

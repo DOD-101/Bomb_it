@@ -1,7 +1,7 @@
 """
 Implements 2 functions for working with map images.
 
-Status: In use
+Status: Working
 """
 
 from PIL import Image

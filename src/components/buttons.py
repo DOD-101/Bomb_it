@@ -1,8 +1,7 @@
 """
 Implements all Button Classes.
 
-Status: WIP
-- Bomb is needed for type hinting. Fix this issue once the Bomb class has it's own file"
+Status: Working
 """
 
 from typing import Literal
@@ -11,13 +10,13 @@ from pygame import draw as pydraw
 from pygame import Surface
 
 import shared
-from src.utils.utils import strToRGB, center
-from bombs import Bomb
+from utils.utils import strToRGB, center
 
 class Button:
     instances = {}
-    def __init__(self, surface: Surface, color ,x_pos: int, y_pos: int, width:int, height: int, text: str, font, font_color, border: Literal["color","width","radius"] = None, insta_draw: bool = False) -> None:
+    def __init__(self, surface: Surface, name: str, color ,x_pos: int, y_pos: int, width:int, height: int, text: str, font, font_color, border: Literal["color","width","radius"] = None, insta_draw: bool = False) -> None:
         self.surface = surface
+        Button.instances[name] = self
         self.color = strToRGB(color)
         self.x_pos = x_pos
         self.y_pos = y_pos
@@ -32,9 +31,12 @@ class Button:
             self.border[0] = strToRGB(self.border[0])
             self.border[1] = int(self.border[1])
             self.border[2] = int(self.border[2])
-
         if insta_draw == True:
             self.draw()
+
+    def setSurface(self, surface):
+        """Updated the self.surface variable of the button"""
+        self.surface = surface
 
     def draw(self) -> None:
         pydraw.rect(self.surface, self.color, [self.x_pos, self.y_pos, self.width,self.height])
@@ -54,8 +56,8 @@ class Button:
 
 class RoundButton(Button):
     """Draws a button as an ellipse"""
-    def __init__(self, color, x_pos: int, y_pos: int, width: int, height: int, text: str, font, font_color, border: Literal['color', 'width'] = None, insta_draw: bool = False) -> None:
-        super().__init__(color, x_pos, y_pos, width, height, text, font, font_color, [*border, 0], insta_draw)
+    def __init__(self, surface: Surface, name: str, color, x_pos: int, y_pos: int, width: int, height: int, text: str, font, font_color, border: Literal['color', 'width'] = None, insta_draw: bool = False) -> None:
+        super().__init__(surface, name, color, x_pos, y_pos, width, height, text, font, font_color, [*border, 0], insta_draw)
 
         # math from https://stackoverflow.com/questions/59971407/how-can-i-test-if-a-point-is-in-an-ellipse
         self.semi_axis_a = self.width // 2
@@ -78,7 +80,6 @@ class RoundButton(Button):
         dy = (mouse_pos[1] - self.cpt_y) * self.scale_y
         collide =  dx*dx + dy*dy <= self.semi_axis_a*self.semi_axis_a
         if collide:
-            print("Yes", end="")
             return True
         else:
             return False
@@ -86,14 +87,16 @@ class RoundButton(Button):
 class BombButton(Button):
     '''Use this class to make any BombButtons so that they all have certain atributes the same'''
     instances = {}
-    def __init__(self, x_pos: int, y_pos: int, width: int, height: int, text: str, bombinstance: type[Bomb], insta_draw = False) -> None:
-        super().__init__(shared.colors["game"]["bomb-buttons"]["conventional"]["stage1"], x_pos, y_pos, width, height, text, shared.STANDARD_FONT, shared.colors["game"]["bomb-buttons"]["conventional"]["font1"], insta_draw = insta_draw)
+    def __init__(self, surface: Surface, name: str, x_pos: int, y_pos: int, width: int, height: int, text: str, bombinstance: type["Bomb"], insta_draw = False) -> None: #type: ignore -- keeps complaining about type["Bomb"]
+        super().__init__(surface, name, shared.COLORS["game"]["bomb-buttons"]["conventional"]["stage1"], x_pos, y_pos, width, height, text, shared.STANDARD_FONT, shared.COLORS["game"]["bomb-buttons"]["conventional"]["font1"], insta_draw = insta_draw)
         self.bombinstance = bombinstance
+        BombButton.instances[name] = self
 
     def onclick(self):
         global active_bomb_text, active_bomb
-        active_bomb_text = self.bombinstance.nickname
-        active_bomb = Bomb.instances[self.bombinstance.key]
+        from .bombs import Bomb # put here to avoid circular import
+        shared.active_bomb_text = self.bombinstance.nickname
+        shared.active_bomb = Bomb.instances[self.bombinstance.key]
 
     def checkAndExecute(self, mouse_pos):
         if super().checkmouseover(mouse_pos):

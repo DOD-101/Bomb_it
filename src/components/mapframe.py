@@ -1,13 +1,22 @@
+"""
+Implements the MapFrame class.
+
+Status: Working
+"""
+
+
 from utils.utils import strToRGB
 from uuid import uuid4
 from pygame import Surface, image, transform, Rect, draw
-from shared import MAP_QUEUE_W, map_row_lengh, map_queue
+import shared
 
 class MapFrame:
     row = 0
     instance_num = 0
+    instances = {}
     def __init__(self, surface: Surface, frame_color, map_path: str, instance_name) -> None:
         MapFrame.instance_num += 1
+        MapFrame.instances[instance_name] = self
         self.surface = surface
         self.size = 200
         self.instance_name = instance_name
@@ -20,12 +29,12 @@ class MapFrame:
     def _get_pos(self):
         instance_num = MapFrame.instance_num
         row = 0
-        while instance_num > map_row_lengh:
-            instance_num -= map_row_lengh
+        while instance_num > shared.map_row_length:
+            instance_num -= shared.map_row_length
             row += 1
 
         cords = [instance_num, row]
-        converted_cords = [MAP_QUEUE_W + 20 + (20 + self.size) * cords[0], 20 + (20 + self.size) * cords[1]]
+        converted_cords = [shared.MAP_QUEUE_W + 20 + (20 + self.size) * cords[0], 20 + (20 + self.size) * cords[1]]
         return converted_cords
 
     def draw(self):
@@ -42,7 +51,7 @@ class MapFrame:
             return None
 
     def onclick(self):
-        map_queue.append(f"{self.instance_name}_{uuid4()}")
+        shared.map_queue.append(f"{self.instance_name}_{uuid4()}")
 
     def checkANDExecute(self, mouse_pos) -> None:
         if self.checkmouseover(mouse_pos) == True:
