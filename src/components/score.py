@@ -25,3 +25,10 @@ def tilesHitScore():
     houses_value = len(houses_hit) * 200
     industry_value = len(industry_hit) * 50
     return industry_value - houses_value
+
+@registerScoreParameter
+def bombPrices():
+    total_price = 0
+    for bomb in Bomb.instances.values():
+        total_price -= bomb.price * len(bomb.tiles)
+    return total_price

@@ -27,6 +27,7 @@ from components.bombs import Bomb, ConventionalBomb
 from components.buttons import Button, BombButton
 from components.mapframe import MapFrame
 from components.score import calculateTotalScore
+from utils.map_utils import px_to_colordict
 from render.draw import Draw
 
 def main():
@@ -36,9 +37,9 @@ def main():
 
     # Bombs
     kt10_img = pygame.image.load("..\\resources\\bomb_icons\\conventional\\test.png").convert()
-    Bomb.instances["kt10"] = ConventionalBomb(shared.screen, 0, 3,kt10_img, "kt10", "G-kt10")
-    Bomb.instances["kt50"] = ConventionalBomb(shared.screen, 2, 3,(255, 102, 255), "kt50", "G-kt50")
-    Bomb.instances["kt100"] = ConventionalBomb(shared.screen, 5, 3,(102, 255, 102), "kt100", "G-kt100")
+    Bomb.instances["kt10"] = ConventionalBomb(shared.screen, 0, 3,kt10_img, "kt10", "G-kt10", 10)
+    Bomb.instances["kt50"] = ConventionalBomb(shared.screen, 2, 3,(255, 102, 255), "kt50", "G-kt50", 200)
+    Bomb.instances["kt100"] = ConventionalBomb(shared.screen, 5, 3,(102, 255, 102), "kt100", "G-kt100", 700)
 
     #-----
     shared.active_bomb = list(Bomb.instances.values())[0]
@@ -113,7 +114,8 @@ def main():
                 file_name = possible_maps[random.randint(0, len(possible_maps) - 1)]
 
 
-            immap = Image.open(os.path.join("..\\resources\maps", file_name))
+            immap = Image.open(os.path.join("..\\resources\maps", file_name)) # immap should not be defined here like this, only leads to problems
+            shared.MAPCOLORS = px_to_colordict(immap, [(0, 255, 0),(0, 0, 255),(255, 0, 255),(255, 0, 0),(0,0,0),(255, 255, 0)]) # remove this as soon as possible
             mouse_tile_cords = utils.mouseTilecords()
             sDraw.drawGrid(immap, shared.grid_start)
             sDraw.drawEfects(mouse_pos, mouse_tile_cords, explode_time)
