@@ -94,7 +94,7 @@ class Draw:
 
     def drawStartMenu(self):
         self.surface.fill(shared.COLORS["all"]["background"])
-        menu_btn_font = Font('..\\resources\\fonts\OpenSans\static\OpenSans-ExtraBold.ttf', 38)
+        menu_btn_font = Font('..\\assets\\fonts\OpenSans\static\OpenSans-ExtraBold.ttf', 38)
         menu_btn_color = shared.COLORS["start_menu"]["button-background"]
         launch_btn_size = (300, 50)
         launch_btn_location = center(launch_btn_size[0], launch_btn_size[1], shared.window_w, shared.window_h, "both")
