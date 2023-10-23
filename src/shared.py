@@ -46,7 +46,7 @@ def init():
     window_h = 300
     score_functions = set()
     SELF_LOC = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(SELF_LOC, '../color.json')) as json_file:
+    with open(os.path.join(SELF_LOC, '../resources/color.json')) as json_file:
         COLORS = json.load(json_file)
     # base map to be used. Consider rewriting to avoid needing this. AKA only have this declared when on main game screen
     immap = Image.open(os.path.join(SELF_LOC, "..\\resources\maps\map0.png"))
