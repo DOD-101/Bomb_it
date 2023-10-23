@@ -9,7 +9,7 @@ import os
 from PIL import Image
 
 from pygame import transform, display, RESIZABLE, Surface
-from pygame.font import SysFont
+from pygame.font import Font
 
 from utils.map_utils import px_to_colordict
 
@@ -51,7 +51,7 @@ def init():
     # base map to be used. Consider rewriting to avoid needing this. AKA only have this declared when on main game screen
     immap = Image.open(os.path.join(SELF_LOC, "..\\resources\maps\map0.png"))
     MAPCOLORS = px_to_colordict(immap, [(0, 255, 0),(0, 0, 255),(255, 0, 255),(255, 0, 0),(0,0,0),(255, 255, 0)])
-    STANDARD_FONT = SysFont('Bahnschrift SemiBold', 30)
+    STANDARD_FONT = Font('..\\resources\\fonts\OpenSans\static\OpenSans_Condensed-SemiBold.ttf', 30)
     map_queue = []
     screen = Surface((window_w, window_h))
     rscreen = display.set_mode((window_w, window_h), RESIZABLE)

@@ -7,8 +7,9 @@ import time
 import os
 import re
 
-from pygame import Surface, Rect, draw, font
+from pygame import Surface, Rect, draw
 from pygame import draw as pydraw
+from pygame.font import Font
 
 import shared
 
@@ -67,7 +68,7 @@ class Draw:
         active_bomb_font_color = shared.COLORS["game"]["active_bomb-font"]
         active_bomb_ftext = active_bomb_font.render(shared.active_bomb.nickname, True, active_bomb_font_color)
         draw.rect(self.surface, shared.COLORS["all"]["background"], [0, shared.window_h-30, 190, 30])
-        self.surface.blit(active_bomb_ftext, (20, shared.window_h - 20))
+        self.surface.blit(active_bomb_ftext, (20, shared.window_h - 40))
         # draw score text
         total_score_font = active_bomb_font
         total_score_font_color = shared.COLORS["game"]["total_score-font"]
@@ -93,7 +94,7 @@ class Draw:
 
     def drawStartMenu(self):
         self.surface.fill(shared.COLORS["all"]["background"])
-        menu_btn_font = font.SysFont("Cooper Black", 40)
+        menu_btn_font = Font('..\\resources\\fonts\OpenSans\static\OpenSans-ExtraBold.ttf', 38)
         menu_btn_color = shared.COLORS["start_menu"]["button-background"]
         launch_btn_size = (300, 50)
         launch_btn_location = center(launch_btn_size[0], launch_btn_size[1], shared.window_w, shared.window_h, "both")

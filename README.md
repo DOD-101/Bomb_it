@@ -27,7 +27,7 @@ These rules are based on PEP 8: https://peps.python.org/pep-0008
 
     As with everything here use common sense and ask if uncertain.
 
-## Dependencies and Licenses
+## Dependencies/Assets and Licenses
 
 Bomb It (stylized as: "Bomb It!") is licensed under the [MIT license](LICENSES/LICENSE_BOMB_IT.txt).
 
@@ -36,3 +36,13 @@ Bomb It (stylized as: "Bomb It!") is licensed under the [MIT license](LICENSES/L
 [Pygame](https://www.pygame.org/news) is licensed under the [LGPL license](LICENSES/LICENSE_PYGAME.txt)
 
 [Pillow](https://pillow.readthedocs.io/en/stable/index.html) is licensed under the [open source HPND License](LICENSES/LICENSE_PILLOW.txt)
+
+### Assets
+
+[OpenSans](https://github.com/googlefonts/opensans) is licensed under the [OFL](LICENSES/LICENSE_OPENSANS.txt) license and comes with the games source code.
+
+## Credits
+
+-Main Dev: David Thievon
+
+And many thanks to anyone who as worked on any of the dependencies or assets used to make this game possible.
