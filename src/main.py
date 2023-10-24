@@ -38,54 +38,53 @@ def main():
 
     # Bombs
     kt10_img = pygame.image.load(os.path.join('..', 'assets', 'bomb_icons', 'conventional', '10kt.png')).convert()
-    Bomb.instances["kt10"] = ConventionalBomb(shared.screen, 0, 3,kt10_img, "kt10", "G-kt10", 10)
+    Bomb.instances["kt10"] = ConventionalBomb(shared.screen, 0, 2,kt10_img, "kt10", "G-kt10", 10)
     kt50_img = pygame.image.load(os.path.join('..', 'assets', 'bomb_icons', 'conventional', '50kt.png')).convert()
-    Bomb.instances["kt50"] = ConventionalBomb(shared.screen, 2, 3, kt50_img, "kt50", "G-kt50", 200)
+    Bomb.instances["kt50"] = ConventionalBomb(shared.screen, 2, 2, kt50_img, "kt50", "G-kt50", 150)
     kt100_img = pygame.image.load(os.path.join('..', 'assets', 'bomb_icons', 'conventional', '100kt.png')).convert()
-    Bomb.instances["kt100"] = ConventionalBomb(shared.screen, 5, 3, kt100_img, "kt100", "G-kt100", 700)
+    Bomb.instances["kt100"] = ConventionalBomb(shared.screen, 5, 2, kt100_img, "kt100", "G-kt100", 600)
 
     #-----
     shared.active_bomb = list(Bomb.instances.values())[0]
 
     total_score = 100
 
-    stage = GameStage.START
+    first_run = True
 
     selecting = False
     game_clock = pygame.time.Clock()
-    first_draw = True
-    while stage != GameStage.QUIT:
+    while shared.stage != GameStage.QUIT:
         mouse_pos = pygame.mouse.get_pos()
-        if stage == GameStage.START:
+        if shared.stage == GameStage.START:
             sDraw.drawStartMenu()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    stage = GameStage.QUIT
+                    shared.stage = GameStage.QUIT
                     break
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if Button.instances["launch"].checkmouseover(mouse_pos):
-                        stage = GameStage.GAME
+                        shared.stage = GameStage.GAME
 
                     if Button.instances["mapselect"].checkmouseover(mouse_pos):
-                        stage = GameStage.MAP_SELECT
+                        shared.stage = GameStage.MAP_SELECT
 
                 if event.type == pygame.VIDEORESIZE:
                     shared.onWindowScale(event)
                     sDraw.updateSurface(shared.screen)
                     continue
 
-        if stage == GameStage.MAP_SELECT:
+        if shared.stage == GameStage.MAP_SELECT:
 
             sDraw.drawMapSelect()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    stage = GameStage.QUIT
+                    shared.stage = GameStage.QUIT
                     break
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if Button.instances["maplaunch"] .checkmouseover(mouse_pos):
-                        stage = GameStage.GAME
+                        shared.stage = GameStage.GAME
                         break
 
                     for map in MapFrame.instances.keys():
@@ -96,7 +95,7 @@ def main():
                             shared.map_queue.remove(x_button)
 
                     if Button.instances["mapback"].checkmouseover(mouse_pos):
-                        stage = GameStage.START
+                        shared.stage = GameStage.START
 
                 if event.type == pygame.VIDEORESIZE:
                     shared.onWindowScale(event)
@@ -104,38 +103,25 @@ def main():
 
                     continue
 
-        if stage == GameStage.GAME:
-            if len(shared.map_queue) != 0:
-                file_name = shared.map_queue[0].rpartition('_')[0] + ".png"
-            elif first_draw:
-                possible_maps = []
-                for current_map in  os.listdir(os.path.join('..', 'assets', 'maps')):
-                    file_ending = re.search(r".*(\..*)$", current_map).group(1)
-                    if not file_ending == ".png":
-                        continue
-                    possible_maps.append(current_map)
-                file_name = possible_maps[random.randint(0, len(possible_maps) - 1)]
+        if shared.stage == GameStage.GAME:
+            if first_run:
+                shared.gameVars()
+            first_run = False
 
-
-            immap = Image.open(os.path.join('..', 'assets', 'maps', file_name)) # immap should not be defined here like this, only leads to problems
-            shared.immap = immap
-            shared.MAPCOLORS = px_to_colordict(immap, [(0, 255, 0),(0, 0, 255),(255, 0, 255),(255, 0, 0),(0,0,0),(255, 255, 0)]) # remove this as soon as possible
-            shared._updateAndInit()
             mouse_tile_cords = utils.mouseTilecords()
-            sDraw.drawGrid(immap, shared.grid_start)
+            sDraw.drawGrid(shared.immap, shared.grid_start)
             sDraw.drawEfects(mouse_pos, mouse_tile_cords, explode_time)
             sDraw.drawMenu(explode_time, total_score)
-            first_draw = False
             # event handling, gets all events from the event queue
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    stage = GameStage.QUIT
+                    shared.stage = GameStage.QUIT
                     break
 
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if Button.instances["back"].checkmouseover(mouse_pos):
-                        stage = GameStage.START
+                        shared.stage = GameStage.START
 
                     for bomb_button in BombButton.instances.values():
                         bomb_button.checkAndExecute(mouse_pos)
@@ -152,8 +138,8 @@ def main():
                     if Button.instances["nextmap"].checkmouseover(mouse_pos):
                         if len(shared.map_queue) != 0:
                             del shared.map_queue[0]
-                        else:
-                            first_draw = True
+
+                        shared.gameVars()
                         clearBombs()
 
                     if mouse_pos[0] > shared.MENU_WIDTH and selecting == False:
