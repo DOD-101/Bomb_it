@@ -115,7 +115,9 @@ def main():
 
 
             immap = Image.open(os.path.join("..\\assets\maps", file_name)) # immap should not be defined here like this, only leads to problems
+            shared.immap = immap
             shared.MAPCOLORS = px_to_colordict(immap, [(0, 255, 0),(0, 0, 255),(255, 0, 255),(255, 0, 0),(0,0,0),(255, 255, 0)]) # remove this as soon as possible
+            shared._updateAndInit()
             mouse_tile_cords = utils.mouseTilecords()
             sDraw.drawGrid(immap, shared.grid_start)
             sDraw.drawEfects(mouse_pos, mouse_tile_cords, explode_time)
