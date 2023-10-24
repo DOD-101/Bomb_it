@@ -37,10 +37,12 @@ def main():
     pygame.display.set_caption("Bomb It!")
 
     # Bombs
-    kt10_img = pygame.image.load(os.path.join('..', 'assets', 'bomb_icons', 'conventional', 'test.png')).convert()
+    kt10_img = pygame.image.load(os.path.join('..', 'assets', 'bomb_icons', 'conventional', '10kt.png')).convert()
     Bomb.instances["kt10"] = ConventionalBomb(shared.screen, 0, 3,kt10_img, "kt10", "G-kt10", 10)
-    Bomb.instances["kt50"] = ConventionalBomb(shared.screen, 2, 3,(255, 102, 255), "kt50", "G-kt50", 200)
-    Bomb.instances["kt100"] = ConventionalBomb(shared.screen, 5, 3,(102, 255, 102), "kt100", "G-kt100", 700)
+    kt50_img = pygame.image.load(os.path.join('..', 'assets', 'bomb_icons', 'conventional', '50kt.png')).convert()
+    Bomb.instances["kt50"] = ConventionalBomb(shared.screen, 2, 3, kt50_img, "kt50", "G-kt50", 200)
+    kt100_img = pygame.image.load(os.path.join('..', 'assets', 'bomb_icons', 'conventional', '100kt.png')).convert()
+    Bomb.instances["kt100"] = ConventionalBomb(shared.screen, 5, 3, kt100_img, "kt100", "G-kt100", 700)
 
     #-----
     shared.active_bomb = list(Bomb.instances.values())[0]
