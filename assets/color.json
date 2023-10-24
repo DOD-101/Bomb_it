@@ -1,7 +1,7 @@
 {
     "all" : {
         "background" : [41, 71, 46],
-        "back_button" : {
+        "back_btn" : {
             "stage1" : [15, 15, 15],
             "font1" : [255, 255, 255],
             "border1" : [110, 107, 107]

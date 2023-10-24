@@ -42,9 +42,12 @@ class Draw:
             pix_y = 0
 
     def drawMenu(self, explode_time, total_score):
-        draw.rect(self.surface,shared.COLORS["all"]["background"], Rect(0, 0, shared.MENU_WIDTH, shared.window_h))
+        draw.rect(self.surface,shared.COLORS["all"]["background"], Rect(0, 0, shared.grid_start, shared.window_h))
+
+        RoundButton(self.surface, "back", shared.COLORS["all"]["back_btn"]["stage1"], 10, 10, 30, 30, "<", shared.STANDARD_FONT, shared.COLORS["all"]["back_btn"]["font1"], [shared.COLORS["all"]["back_btn"]["border1"], "3"], insta_draw=True)
+
         #region BombButton drawing
-        bomb_button_y_pos = 30
+        bomb_button_y_pos = 50
         for bomb_button in BombButton.instances.values():
             bomb_button.x_pos = 20
             bomb_button.y_pos = bomb_button_y_pos
@@ -55,13 +58,13 @@ class Draw:
             bomb_button.draw()
             bomb_button_y_pos += 60
 
+        Button(self.surface, "nextmap", shared.COLORS["game"]["next_map_btn"]["stage1"], 10, shared.window_h - 150, 150, 50, "Next map", shared.STANDARD_FONT,shared.COLORS["game"]["next_map_btn"]["font1"],[shared.COLORS["game"]["next_map_btn"]["border1"] ,3, 4], insta_draw=True)
         #endregion
         if time.time() >= explode_time + max(Bomb.explode_durations):
             Button(self.surface, "explode", shared.COLORS["game"]["explode_btn"]["stage1"], 10, shared.window_h - 90, 150, 50, "EXPLODE!", shared.STANDARD_FONT,shared.COLORS["game"]["explode_btn"]["font1"],[shared.COLORS["game"]["explode_btn"]["border1"] ,3, 4], insta_draw=True)
         else:
             Button(self.surface, "explode", shared.COLORS["game"]["explode_btn"]["stage2"], 10, shared.window_h - 90, 150, 50, "EXPLODE!", shared.STANDARD_FONT,shared.COLORS["game"]["explode_btn"]["font2"],[shared.COLORS["game"]["explode_btn"]["border2"] ,3, 4], insta_draw=True)
 
-        Button(self.surface, "nextmap", shared.COLORS["game"]["next_map_btn"]["stage1"], 10, shared.window_h - 150, 150, 50, "Next map", shared.STANDARD_FONT,shared.COLORS["game"]["next_map_btn"]["font1"],[shared.COLORS["game"]["next_map_btn"]["border1"] ,3, 4], insta_draw=True)
 
         # draw active-bomb text
         active_bomb_font = shared.STANDARD_FONT
@@ -108,7 +111,7 @@ class Draw:
         self.surface.fill(shared.COLORS["all"]["background"])
         MapFrame.instance_num = 0
         MapFrame.row = 0
-        RoundButton(self.surface, "mapback", shared.COLORS["all"]["back_button"]["stage1"], 20, 20, 30, 30, "<", shared.STANDARD_FONT,shared.COLORS["all"]["back_button"]["font1"],[shared.COLORS["all"]["back_button"]["border1"], "3"], insta_draw = True)
+        RoundButton(self.surface, "mapback", shared.COLORS["all"]["back_btn"]["stage1"], 20, 20, 30, 30, "<", shared.STANDARD_FONT,shared.COLORS["all"]["back_btn"]["font1"],[shared.COLORS["all"]["back_btn"]["border1"], "3"], insta_draw = True)
 
         for map in os.listdir(shared.PATH_TO_MAPS):
             file_ending = re.search(r".*(\..*)$", map).group(1)

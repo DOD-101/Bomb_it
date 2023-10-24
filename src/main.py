@@ -129,7 +129,11 @@ def main():
                     stage = GameStage.QUIT
                     break
 
+
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if Button.instances["back"].checkmouseover(mouse_pos):
+                        stage = GameStage.START
+
                     for bomb_button in BombButton.instances.values():
                         bomb_button.checkAndExecute(mouse_pos)
 
