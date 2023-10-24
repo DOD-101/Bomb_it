@@ -42,8 +42,9 @@ class Draw:
             pix_y = 0
 
     def drawMenu(self, explode_time, total_score):
-        draw.rect(self.surface,shared.COLORS["all"]["background"], Rect(0, 0, shared.grid_start, shared.window_h))
-
+        """Draws anything outside of the grid"""
+        draw.rect(self.surface, shared.COLORS["all"]["background"], Rect(0, 0, shared.grid_start, shared.window_h))
+        draw.rect(self.surface, shared.COLORS["all"]["background"], Rect(shared.grid_start, shared.grid_bottom, shared.window_w, shared.window_h))
         RoundButton(self.surface, "back", shared.COLORS["all"]["back_btn"]["stage1"], 10, 10, 30, 30, "<", shared.STANDARD_FONT, shared.COLORS["all"]["back_btn"]["font1"], [shared.COLORS["all"]["back_btn"]["border1"], "3"], insta_draw=True)
 
         #region BombButton drawing

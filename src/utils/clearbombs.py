@@ -1,7 +1,7 @@
 """
 Implemnets a simple function for clearing all bombs.
 
-Status WIP
+Status: Working
 """
 
 
