@@ -105,7 +105,7 @@ def main():
 
         if shared.stage == GameStage.GAME:
             if first_run:
-                shared.gameVars()
+                shared.gameVars(first=True)
             first_run = False
 
             mouse_tile_cords = utils.mouseTilecords()

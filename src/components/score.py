@@ -22,7 +22,10 @@ def tilesHitScore():
         all_tiles_hit.update(bomb.explosion_area)
     total = 0
     for tile in shared.TILES:
-        total += len(set(shared.mapcolors[tuple(shared.TILES[tile]["color"])])  & all_tiles_hit) * shared.TILES[tile]["score"]
+        try:
+            total += len(set(shared.mapcolors[tuple(shared.TILES[tile]["color"])])  & all_tiles_hit) * shared.TILES[tile]["score"]
+        except KeyError:
+            pass # this just means a map doesn't contain a certain tile
     return total
 
 @registerScoreParameter
