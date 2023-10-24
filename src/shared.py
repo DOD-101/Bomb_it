@@ -25,7 +25,6 @@ def _updateAndInit():
     if stage == GameStage.GAME:
         gameVars()
 
-
 def init():
     """Initializes all values."""
     global COLORS, MENU_WIDTH, score_functions, MAP_QUEUE_W, window_w, window_h, STANDARD_FONT, map_queue, immap, \
@@ -37,7 +36,7 @@ def init():
     window_h = 300
     score_functions = set()
     SELF_LOC = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(SELF_LOC, os.path.join('..', 'assets', 'color.json'))) as json_file:
+    with open(os.path.join(SELF_LOC, '..', 'assets', 'color.json')) as json_file:
         COLORS = json.load(json_file)
     STANDARD_FONT = Font(os.path.join('..', 'assets',  'fonts', 'OpenSans', 'static', 'OpenSans_Condensed-SemiBold.ttf'), 30)
     map_queue = []
@@ -58,9 +57,13 @@ def onWindowScale(event):
 
 def gameVars():
     """Variables only needed in the main stage of the game"""
-    global immap, mapcolors, tile_size, grid_start, grid_bottom
+    global immap, mapcolors, tile_size, grid_start, grid_bottom, TILES
     immap = getAnImmap(map_queue)
-    mapcolors = px_to_colordict(immap, [(0, 255, 0),(0, 0, 255),(255, 0, 255),(255, 0, 0),(0,0,0),(255, 255, 0)])
+    SELF_LOC = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(SELF_LOC, '..', 'assets', 'tiles.json')) as f:
+        TILES = json.load(f)
+    tile_colors = [tuple(TILES[key]['color']) for key in TILES]
+    mapcolors = px_to_colordict(immap, tile_colors)
     # tile_size
     if window_w - MENU_WIDTH >= window_h:
         tile_size = window_h / immap.size[1]

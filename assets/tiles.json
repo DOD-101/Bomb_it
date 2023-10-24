@@ -1,0 +1,32 @@
+{
+    "grass": {
+        "score": 0,
+        "color" : [0, 255, 0],
+        "icon" : "NONE"
+    },
+    "house": {
+        "score": -100,
+        "color" : [255, 0, 255],
+        "icon" : "NONE"
+    },
+    "water": {
+        "score": 0,
+        "color" : [0, 0, 255],
+        "icon" : "NONE"
+    },
+    "industry": {
+        "score": 50,
+        "color" : [255, 0, 0],
+        "icon" : "NONE"
+    },
+    "street": {
+        "score": 0,
+        "color" : [0,0,0],
+        "icon" : "NONE"
+    },
+    "railway": {
+        "score": 0,
+        "color" : [255, 255, 0],
+        "icon" : "NONE"
+    }
+}

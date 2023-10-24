@@ -11,7 +11,7 @@ from re import search
 from PIL import Image
 
 
-def getAnImmap(map_queue):
+def getAnImmap(map_queue) -> Image:
     """Returns an Image to act as the map for the game."""
     if len(map_queue) != 0:
         file_name = map_queue[0].rpartition('_')[0] + ".png"
@@ -44,9 +44,9 @@ def convert_dir_to_rgb(dir: str, make_copy: bool = True, convert_all: bool = Fal
                     else:
                         rgb_image.save(os.path.join(dir, f"{filename}"))
 
-def px_to_colordict(image: Image.Image, allowed_colors: list | set == None) -> dict:
+def px_to_colordict(image: Image.Image, allowed_colors: list | set = None) -> dict:
     """Return a dict with the keys being the color and each keys value being a set with the cords of all pixels that have that color.
-    If allowed_colors is left as None all colors will be allow otherwise it will only add colors to the dict which have one of those colors.
+    If allowed_colors is left as None all colors will be allowed, otherwise only colors which have one of those values will be added.
     All values entered and returned must be/are RGB."""
     image = image.convert("RGB")
     px = image.load()

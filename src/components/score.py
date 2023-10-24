@@ -20,11 +20,10 @@ def tilesHitScore():
     all_tiles_hit = set()
     for bomb in Bomb.instances.values():
         all_tiles_hit.update(bomb.explosion_area)
-    houses_hit = shared.mapcolors[(255, 0, 255)]  & all_tiles_hit
-    industry_hit = shared.mapcolors[(255, 0, 0)]  & all_tiles_hit
-    houses_value = len(houses_hit) * 100
-    industry_value = len(industry_hit) * 50
-    return industry_value - houses_value
+    total = 0
+    for tile in shared.TILES:
+        total += len(set(shared.mapcolors[tuple(shared.TILES[tile]["color"])])  & all_tiles_hit) * shared.TILES[tile]["score"]
+    return total
 
 @registerScoreParameter
 def bombPrices():
