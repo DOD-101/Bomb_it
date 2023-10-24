@@ -23,6 +23,7 @@ from PIL import Image
 from utils import utils
 from utils.gamestage_enum import GameStage
 from utils.selecttiles import selectTiles
+from utils.clearbombs import clearBombs
 from components.bombs import Bomb, ConventionalBomb
 from components.buttons import Button, BombButton
 from components.mapframe import MapFrame
@@ -137,6 +138,9 @@ def main():
                     for bomb_button in BombButton.instances.values():
                         bomb_button.checkAndExecute(mouse_pos)
 
+                    if Button.instances["clear"].checkmouseover(mouse_pos):
+                        clearBombs()
+
                     if Button.instances["explode"].checkmouseover(mouse_pos) and time.time() >= explode_time + max(Bomb.explode_durations):
                         for bomb in Bomb.instances.values():
                             bomb.calculateAreas()
@@ -148,6 +152,7 @@ def main():
                             del shared.map_queue[0]
                         else:
                             first_draw = True
+                        clearBombs()
 
                     if mouse_pos[0] > shared.MENU_WIDTH and selecting == False:
                         selecting = True

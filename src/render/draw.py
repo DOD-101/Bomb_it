@@ -58,12 +58,13 @@ class Draw:
             bomb_button.draw()
             bomb_button_y_pos += 60
 
-        Button(self.surface, "nextmap", shared.COLORS["game"]["next_map_btn"]["stage1"], 10, shared.window_h - 150, 150, 50, "Next map", shared.STANDARD_FONT,shared.COLORS["game"]["next_map_btn"]["font1"],[shared.COLORS["game"]["next_map_btn"]["border1"] ,3, 4], insta_draw=True)
+        Button(self.surface, "clear", shared.COLORS["game"]["clear_btn"]["stage1"], 10, shared.window_h - 210, 150, 50, "Clear bombs", shared.STANDARD_FONT, shared.COLORS["game"]["clear_btn"]["font1"], [shared.COLORS["game"]["clear_btn"]["border1"], 2, 4], insta_draw=True)
+        Button(self.surface, "nextmap", shared.COLORS["game"]["next_map_btn"]["stage1"], 10, shared.window_h - 150, 150, 50, "Next map", shared.STANDARD_FONT, shared.COLORS["game"]["next_map_btn"]["font1"],[shared.COLORS["game"]["next_map_btn"]["border1"] ,3, 4], insta_draw=True)
         #endregion
         if time.time() >= explode_time + max(Bomb.explode_durations):
-            Button(self.surface, "explode", shared.COLORS["game"]["explode_btn"]["stage1"], 10, shared.window_h - 90, 150, 50, "EXPLODE!", shared.STANDARD_FONT,shared.COLORS["game"]["explode_btn"]["font1"],[shared.COLORS["game"]["explode_btn"]["border1"] ,3, 4], insta_draw=True)
+            Button(self.surface, "explode", shared.COLORS["game"]["explode_btn"]["stage1"], 10, shared.window_h - 90, 150, 50, "EXPLODE!", shared.STANDARD_FONT, shared.COLORS["game"]["explode_btn"]["font1"],[shared.COLORS["game"]["explode_btn"]["border1"] ,3, 4], insta_draw=True)
         else:
-            Button(self.surface, "explode", shared.COLORS["game"]["explode_btn"]["stage2"], 10, shared.window_h - 90, 150, 50, "EXPLODE!", shared.STANDARD_FONT,shared.COLORS["game"]["explode_btn"]["font2"],[shared.COLORS["game"]["explode_btn"]["border2"] ,3, 4], insta_draw=True)
+            Button(self.surface, "explode", shared.COLORS["game"]["explode_btn"]["stage2"], 10, shared.window_h - 90, 150, 50, "EXPLODE!", shared.STANDARD_FONT, shared.COLORS["game"]["explode_btn"]["font2"],[shared.COLORS["game"]["explode_btn"]["border2"] ,3, 4], insta_draw=True)
 
 
         # draw active-bomb text
@@ -76,7 +77,7 @@ class Draw:
         total_score_font = active_bomb_font
         total_score_font_color = shared.COLORS["game"]["total_score-font"]
         total_score_ftext = total_score_font.render(f"Score:{total_score}", True, total_score_font_color)
-        self.surface.blit(total_score_ftext, (20, shared.window_h - 200))
+        self.surface.blit(total_score_ftext, (20, shared.window_h - 260))
 
     def drawEfects(self, mouse_pos, mouse_tile_cords, explode_t):
         #hover efect

@@ -42,6 +42,11 @@
             "border1" : [255, 255, 255],
             "font1" : [0, 0, 0]
         },
+        "clear_btn" : {
+            "stage1" : [73, 94, 128],
+            "border1" : [255, 255, 255],
+            "font1" : [0, 0, 0]
+        },
         "active_bomb-font" : [255, 255, 255],
         "total_score-font" : [255, 255, 255],
         "bombs" : {
