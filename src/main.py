@@ -36,7 +36,7 @@ def main():
     pygame.display.set_caption("Bomb It!")
 
     # Bombs
-    kt10_img = pygame.image.load("..\\assets\\bomb_icons\\conventional\\test.png").convert()
+    kt10_img = pygame.image.load(os.path.join('..', 'assets', 'bomb_icons', 'conventional', 'test.png')).convert()
     Bomb.instances["kt10"] = ConventionalBomb(shared.screen, 0, 3,kt10_img, "kt10", "G-kt10", 10)
     Bomb.instances["kt50"] = ConventionalBomb(shared.screen, 2, 3,(255, 102, 255), "kt50", "G-kt50", 200)
     Bomb.instances["kt100"] = ConventionalBomb(shared.screen, 5, 3,(102, 255, 102), "kt100", "G-kt100", 700)
@@ -106,7 +106,7 @@ def main():
                 file_name = shared.map_queue[0].rpartition('_')[0] + ".png"
             elif first_draw:
                 possible_maps = []
-                for current_map in  os.listdir("..\\assets\maps"):
+                for current_map in  os.listdir(os.path.join('..', 'assets', 'maps')):
                     file_ending = re.search(r".*(\..*)$", current_map).group(1)
                     if not file_ending == ".png":
                         continue
@@ -114,7 +114,7 @@ def main():
                 file_name = possible_maps[random.randint(0, len(possible_maps) - 1)]
 
 
-            immap = Image.open(os.path.join("..\\assets\maps", file_name)) # immap should not be defined here like this, only leads to problems
+            immap = Image.open(os.path.join('..', 'assets', 'maps', file_name)) # immap should not be defined here like this, only leads to problems
             shared.immap = immap
             shared.MAPCOLORS = px_to_colordict(immap, [(0, 255, 0),(0, 0, 255),(255, 0, 255),(255, 0, 0),(0,0,0),(255, 255, 0)]) # remove this as soon as possible
             shared._updateAndInit()

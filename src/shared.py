@@ -41,17 +41,17 @@ def init():
           PATH_TO_MAPS, MAPCOLORS, screen, rscreen, selected_tiles
     MENU_WIDTH = 200
     MAP_QUEUE_W = 200
-    PATH_TO_MAPS = os.path.realpath("..\\assets\maps")
+    PATH_TO_MAPS = os.path.realpath(os.path.join('..', 'assets', 'maps'))
     window_w = 1000
     window_h = 300
     score_functions = set()
     SELF_LOC = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(SELF_LOC, '../assets/color.json')) as json_file:
+    with open(os.path.join(SELF_LOC, os.path.join('..', 'assets', 'color.json'))) as json_file:
         COLORS = json.load(json_file)
     # base map to be used. Consider rewriting to avoid needing this. AKA only have this declared when on main game screen
-    immap = Image.open(os.path.join(SELF_LOC, "..\\assets\maps\map0.png"))
+    immap = Image.open(os.path.join(SELF_LOC, os.path.join('..', 'assets', 'maps', 'map0.png')))
     MAPCOLORS = px_to_colordict(immap, [(0, 255, 0),(0, 0, 255),(255, 0, 255),(255, 0, 0),(0,0,0),(255, 255, 0)])
-    STANDARD_FONT = Font('..\\assets\\fonts\OpenSans\static\OpenSans_Condensed-SemiBold.ttf', 30)
+    STANDARD_FONT = Font(os.path.join('..', 'assets',  'fonts', 'OpenSans', 'static', 'OpenSans_Condensed-SemiBold.ttf'), 30)
     map_queue = []
     screen = Surface((window_w, window_h))
     rscreen = display.set_mode((window_w, window_h), RESIZABLE)
