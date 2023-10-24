@@ -58,7 +58,8 @@ def px_to_colordict(image: Image.Image, allowed_colors: list | set = None) -> di
                 if px[x,y] in colordict.keys():
                     colordict[px[x,y]].add((x,y))
                 else:
-                    colordict[px[x,y]] = set((x,y))
+                    colordict[px[x,y]] = set()
+                    colordict[px[x,y]].add((x,y))
 
     return colordict
 

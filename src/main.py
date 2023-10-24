@@ -105,11 +105,12 @@ def main():
 
         if shared.stage == GameStage.GAME:
             if first_run:
-                shared.gameVars()
+                shared.gameVars(first=True)
             first_run = False
 
             mouse_tile_cords = utils.mouseTilecords()
-            sDraw.drawGrid(shared.immap, shared.grid_start)
+            sDraw.drawGrid()
+            sDraw.drawTileIcons()
             sDraw.drawEfects(mouse_pos, mouse_tile_cords, explode_time)
             sDraw.drawMenu(explode_time, total_score)
             # event handling, gets all events from the event queue

@@ -2,7 +2,7 @@
 Implements general-use functions.
 
 Status: Working
-
+- cordsConvvert should just get the tile_size from shared.
 """
 
 import typing

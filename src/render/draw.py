@@ -7,7 +7,7 @@ import time
 import os
 import re
 
-from pygame import Surface, Rect, draw
+from pygame import Surface, Rect, draw, image, transform
 from pygame import draw as pydraw
 from pygame.font import Font
 
@@ -26,20 +26,50 @@ class Draw:
     def updateSurface(self, surface):
         self.surface = surface
 
-    def drawGrid(self, map_image, grid_start: int):
+    def drawGrid(self):
         '''Used to draw base grid before effects'''
         self.surface.fill(shared.COLORS["all"]["background"])
 
         pix_x, pix_y = 0,0
-        pxmap = map_image.load()
-        for x in range(grid_start, map_image.size[0]*shared.tile_size + grid_start, shared.tile_size):
-            for y in range(0, map_image.size[1]*shared.tile_size, shared.tile_size):
+        pxmap = shared.immap.load()
+        for x in range(shared.grid_start, shared.immap.size[0]*shared.tile_size + shared.grid_start, shared.tile_size):
+            for y in range(0, shared.immap.size[1]*shared.tile_size, shared.tile_size):
                 rect = Rect(x, y, shared.tile_size, shared.tile_size)
                 pydraw.rect(self.surface, pxmap[pix_x,pix_y], rect)
                 pydraw.rect(self.surface, shared.COLORS["game"]["grid-border"], rect, 1)
                 pix_y += 1
             pix_x += 1
             pix_y = 0
+
+    def drawTileIcons(self):
+        TILE_ICON_LOC = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'assets', 'tile_icons')
+        icon_num = 0
+        def tileBliting(position):
+            tile_icon_path = os.path.join(TILE_ICON_LOC, tile_icons[position]) + '.png'
+            tile_surface = image.load(tile_icon_path).convert()
+            tile_surface = transform.scale(tile_surface,[shared.tile_size, shared.tile_size])
+            self.surface.blit(tile_surface, real_cord)
+
+        for color in shared.mapcolors: # get the color
+            for tile in shared.TILES.values(): # get every tile
+                if tuple(tile["color"]) == color: # check if it's the right tile
+                    if tile["icons"] != ["NONE"]: # check if the tile has (an) icon(s)
+                        for cord in shared.mapcolors[color]:
+                            #convert the cord to real cord
+                            real_cord = cordsConvert(cord, shared.tile_size, to_normal=True)
+                            #place proper blit
+                            tile_icons = tile["icons"]
+
+                            if len(tile_icons) == 1:
+                                tileBliting(0)
+                            else:
+                                if icon_num == len(tile_icons):
+                                    icon_num = 0
+                                tileBliting(icon_num)
+                                icon_num += 1
+                    else:
+                        break
+
 
     def drawMenu(self, explode_time, total_score):
         """Draws anything outside of the grid"""

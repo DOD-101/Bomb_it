@@ -14,7 +14,7 @@ from utils.map_utils import px_to_colordict, getAnImmap
 
 # import utils.map_utils as map_utils
 
-def _updateAndInit():
+def _updateAndInit(resize = False):
     """For things needed in init and onWInowScale."""
     global map_row_lenght, tile_size, grid_start, grid_bottom, map_row_length
     # map_row_lenght
@@ -23,7 +23,7 @@ def _updateAndInit():
         map_row_length = 1
 
     if stage == GameStage.GAME:
-        gameVars()
+        gameVars(resize)
 
 def init():
     """Initializes all values."""
@@ -53,17 +53,21 @@ def onWindowScale(event):
     rscreen = display.set_mode((window_w, window_h), RESIZABLE)
     screen = transform.scale(screen, (window_w, window_h))
     screen.fill(COLORS["all"]["background"])
-    _updateAndInit()
+    _updateAndInit(resize=True)
 
-def gameVars():
+def gameVars(resize = False, first = False):
     """Variables only needed in the main stage of the game"""
     global immap, mapcolors, tile_size, grid_start, grid_bottom, TILES
-    immap = getAnImmap(map_queue)
-    SELF_LOC = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(SELF_LOC, '..', 'assets', 'tiles.json')) as f:
-        TILES = json.load(f)
-    tile_colors = [tuple(TILES[key]['color']) for key in TILES]
-    mapcolors = px_to_colordict(immap, tile_colors)
+    if first:
+        SELF_LOC = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(SELF_LOC, '..', 'assets', 'tiles.json')) as f:
+            TILES = json.load(f)
+
+    if not resize:
+        immap = getAnImmap(map_queue)
+        tile_colors = [tuple(TILES[key]['color']) for key in TILES]
+        mapcolors = px_to_colordict(immap, tile_colors)
+
     # tile_size
     if window_w - MENU_WIDTH >= window_h:
         tile_size = window_h / immap.size[1]
