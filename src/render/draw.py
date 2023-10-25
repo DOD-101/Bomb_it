@@ -111,6 +111,10 @@ class Draw:
         self.surface.blit(total_score_ftext, (20, shared.window_h - 260))
 
     def drawEfects(self, mouse_pos, mouse_tile_cords, explode_t):
+        #clicked efects
+        for bomb in Bomb.instances.values():
+            bomb.setSurface(shared.screen)
+            bomb.draw()
         #hover efect
         if mouse_pos[0] > shared.grid_start and mouse_pos[1] < shared.immap.size[1] * shared.tile_size:
             hover_Surface = Surface((shared.tile_size, shared.tile_size))
@@ -118,10 +122,6 @@ class Draw:
             hover_Surface.fill(shared.COLORS["game"]["grid-hover"])
             blit_x, blit_y = cordsConvert(mouse_tile_cords, shared.tile_size, True)
             self.surface.blit(hover_Surface,(blit_x, blit_y))
-        #clicked efects
-        for bomb in Bomb.instances.values():
-            bomb.setSurface(shared.screen)
-            bomb.draw()
         #explosions of bombs
         current_time = time.time()
         for bomb in Bomb.instances.values():

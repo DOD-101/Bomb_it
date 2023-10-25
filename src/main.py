@@ -110,6 +110,7 @@ def main():
             first_run = False
 
             mouse_tile_cords = utils.mouseTilecords()
+
             if draw_grid:
                 sDraw.drawGrid()
                 sDraw.drawTileIcons()
@@ -120,6 +121,7 @@ def main():
             else:
                 shared.screen.fill(shared.COLORS["all"]["background"])
                 shared.screen.blit(grid_surface, [shared.grid_start, 0])
+
             sDraw.drawEfects(mouse_pos, mouse_tile_cords, explode_time)
             sDraw.drawMenu(explode_time, total_score)
             # event handling, gets all events from the event queue
@@ -153,16 +155,19 @@ def main():
                         shared.gameVars()
                         clearBombs()
 
-                    if mouse_pos[0] > shared.MENU_WIDTH and selecting == False:
-                        selecting = True
-                        selection = list()
-                        selection.append((mouse_tile_cords[0], mouse_tile_cords[1]))
+                if event.type == pygame.MOUSEBUTTONDOWN and mouse_pos[0] > shared.MENU_WIDTH and selecting == False:
+                    selecting = True
+                    selection = list()
+                    selection.append((mouse_tile_cords[0], mouse_tile_cords[1]))
 
-                if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and selecting == True:
+                if event.type == pygame.MOUSEBUTTONUP and selecting == True and event.button in [1,3]:
                     selecting = False
                     selection.append((mouse_tile_cords[0], mouse_tile_cords[1]))
                     if time.time() >= explode_time + max(Bomb.explode_durations):
-                        shared.active_bomb.tiles = selectTiles(selection, shared.active_bomb)
+                        if event.button == 1:
+                            shared.active_bomb.tiles = selectTiles(selection, shared.active_bomb)
+                        elif event.button == 3:
+                            shared.active_bomb.tiles = selectTiles(selection, shared.active_bomb, remove = True)
 
                 if event.type == pygame.VIDEORESIZE:
                     shared.onWindowScale(event)
