@@ -28,6 +28,7 @@ from components.bombs import Bomb, ConventionalBomb
 from components.buttons import Button, BombButton
 from components.mapframe import MapFrame
 from components.score import calculateTotalScore
+from utils.clearbombs import clearBombs
 from utils.map_utils import px_to_colordict
 from render.draw import Draw
 
@@ -84,8 +85,11 @@ def main():
                     break
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if Button.instances["maplaunch"] .checkmouseover(mouse_pos):
+                    if Button.instances["maplaunch"].checkmouseover(mouse_pos):
                         shared.stage = GameStage.GAME
+                        shared.gameVars()
+                        draw_grid = True
+                        clearBombs()
                         break
 
                     for map in MapFrame.instances.keys():
