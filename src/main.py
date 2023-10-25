@@ -50,6 +50,7 @@ def main():
     total_score = 100
 
     first_run = True
+    draw_grid = True
 
     selecting = False
     game_clock = pygame.time.Clock()
@@ -109,8 +110,16 @@ def main():
             first_run = False
 
             mouse_tile_cords = utils.mouseTilecords()
-            sDraw.drawGrid()
-            sDraw.drawTileIcons()
+            if draw_grid:
+                sDraw.drawGrid()
+                sDraw.drawTileIcons()
+                grid_area = (shared.grid_start, 0, shared.window_w - shared.grid_start, shared.window_h - (shared.window_h - shared.grid_bottom))
+                grid_surface = pygame.Surface([shared.window_w - shared.grid_start, shared.window_h - (shared.window_h - shared.grid_bottom)])
+                grid_surface.blit(shared.screen, [0,0], grid_area)
+                draw_grid = False
+            else:
+                shared.screen.fill(shared.COLORS["all"]["background"])
+                shared.screen.blit(grid_surface, [shared.grid_start, 0])
             sDraw.drawEfects(mouse_pos, mouse_tile_cords, explode_time)
             sDraw.drawMenu(explode_time, total_score)
             # event handling, gets all events from the event queue
@@ -140,6 +149,7 @@ def main():
                         if len(shared.map_queue) != 0:
                             del shared.map_queue[0]
 
+                        draw_grid = True
                         shared.gameVars()
                         clearBombs()
 
@@ -157,6 +167,7 @@ def main():
                 if event.type == pygame.VIDEORESIZE:
                     shared.onWindowScale(event)
                     sDraw.updateSurface(shared.screen)
+                    draw_grid = True
                     continue
 
         # at the end of every frame
