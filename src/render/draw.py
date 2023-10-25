@@ -70,7 +70,6 @@ class Draw:
                     else:
                         break
 
-
     def drawMenu(self, explode_time, total_score):
         """Draws anything outside of the grid"""
         draw.rect(self.surface, shared.COLORS["all"]["background"], Rect(0, 0, shared.grid_start, shared.window_h))
