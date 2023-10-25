@@ -7,7 +7,7 @@
     "house": {
         "score": -100,
         "color" : [255, 0, 255],
-        "icons" : ["house_tile0"]
+        "icons" : ["house_tile0low"]
     },
     "water": {
         "score": 0,
@@ -17,7 +17,7 @@
     "industry": {
         "score": 50,
         "color" : [255, 0, 0],
-        "icons" : ["industry_tile0"]
+        "icons" : ["industry_tile0low"]
     },
     "street": {
         "score": 0,

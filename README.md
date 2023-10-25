@@ -1,5 +1,5 @@
 # Bomb it!
-<sub>Version: 0.1.0.9</sub>
+<sub>Version: 0.1.0.10</sub>
 
 ## What is this?
 Bomb it! is an open-source game written in python using the pygame module package.
@@ -39,6 +39,8 @@ Bomb It (stylized as: "Bomb It!") is licensed under the [MIT license](LICENSES/L
 ### Assets
 
 [OpenSans](https://github.com/googlefonts/opensans) is licensed under the [OFL](LICENSES/LICENSE_OPENSANS.txt) license and comes with the game's source code.
+
+[Game-icons](https://game-icons.net/) are licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
 
 ## Credits
 
