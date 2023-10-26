@@ -57,7 +57,7 @@ def onWindowScale(event):
 
 def gameVars(resize = False, first = False):
     """Variables only needed in the main stage of the game"""
-    global immap, mapcolors, tile_size, grid_start, grid_bottom, TILES
+    global immap, mapcolors, tile_size, grid_start, grid_bottom, TILES, score_parts
     if first:
         SELF_LOC = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(SELF_LOC, '..', 'assets', 'tiles.json')) as f:
@@ -68,6 +68,7 @@ def gameVars(resize = False, first = False):
         tile_colors = [tuple(TILES[key]['color']) for key in TILES]
         mapcolors = px_to_colordict(immap, tile_colors)
 
+    score_parts = {}
     # tile_size
     if window_w - MENU_WIDTH >= window_h:
         tile_size = window_h / immap.size[1]

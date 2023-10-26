@@ -26,6 +26,17 @@ class Draw:
     def updateSurface(self, surface):
         self.surface = surface
 
+    def drawDashedLine(self, start_x, end_x, y, line_width, dash_length, gap_length, color):
+        # Draw a dashed line
+        x = start_x + dash_length
+        last_x = start_x
+        while x < end_x:
+            draw.line(self.surface, color, (last_x,y), (x, y), line_width)
+            last_x = x + gap_length
+            x += dash_length + gap_length
+
+
+
     def drawGrid(self):
         '''Used to draw base grid before effects'''
         self.surface.fill(shared.COLORS["all"]["background"])
@@ -105,6 +116,16 @@ class Draw:
         self.surface.blit(active_bomb_ftext, (20, shared.window_h - 40))
         # draw score text
         total_score_font = active_bomb_font
+        part_score_font = Font(os.path.join('..', 'assets',  'fonts', 'OpenSans', 'static', 'OpenSans_Condensed-SemiBold.ttf'), 20)
+        part_score_font_color = shared.COLORS["game"]["part_score-font"]
+        part_score_y = shared.window_h - 270 -(len(shared.score_parts) * 30)
+        for key, value in shared.score_parts.items():
+            part_score_ftext = part_score_font.render(f"{key}: {value}", True, part_score_font_color)
+            self.surface.blit(part_score_ftext, (20, part_score_y))
+            part_score_y += 30
+
+        self.drawDashedLine(20, 150, shared.window_h - 262, 2, 10, 7, shared.COLORS["game"]["score_line"])
+
         total_score_font_color = shared.COLORS["game"]["total_score-font"]
         total_score_ftext = total_score_font.render(f"Score:{total_score}", True, total_score_font_color)
         self.surface.blit(total_score_ftext, (20, shared.window_h - 260))

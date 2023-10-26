@@ -49,6 +49,8 @@
         },
         "active_bomb-font" : [255, 255, 255],
         "total_score-font" : [255, 255, 255],
+        "part_score-font" : [255, 255, 255],
+        "score_line" : [255, 255, 255],
         "bombs" : {
             "conventional" : {
                 "explosion-area" : [255, 102, 0]
