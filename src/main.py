@@ -87,7 +87,7 @@ def main():
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if Button.instances["maplaunch"].checkmouseover(mouse_pos):
                         shared.stage = GameStage.GAME
-                        shared.gameVars()
+                        shared.gameVars(first = True)
                         draw_grid = True
                         clearBombs()
                         break
