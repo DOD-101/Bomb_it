@@ -1,5 +1,5 @@
 # Bomb it!
-<sub>Version: 0.1.0.16</sub>
+<sub>Version: 0.1.0.17</sub>
 
 ## What is this?
 Bomb it! is an open-source game written in python using the pygame module package.

@@ -51,7 +51,7 @@ class MapFrame:
             return None
 
     def onclick(self):
-        shared.map_queue.append(f"{self.instance_name}_{uuid4()}")
+        shared.map_queue.appendMap(self.instance_name)
 
     def checkANDExecute(self, mouse_pos) -> None:
         if self.checkmouseover(mouse_pos) == True:

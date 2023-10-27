@@ -27,7 +27,7 @@ from utils.clearbombs import clearBombs
 from components.bombs import Bomb, ConventionalBomb
 from components.buttons import Button, BombButton
 from components.mapframe import MapFrame
-from components.score import calculateTotalScore
+from components.score import calculateTotalScore, saveScore
 from utils.clearbombs import clearBombs
 from utils.map_utils import px_to_colordict
 from render.draw import Draw
@@ -149,11 +149,11 @@ def main():
                         for bomb in Bomb.instances.values():
                             bomb.calculateAreas()
                         total_score = calculateTotalScore()
+                        saveScore(total_score, shared.map_queue[0])
                         explode_time = time.time()
 
                     if Button.instances["nextmap"].checkmouseover(mouse_pos):
-                        if len(shared.map_queue) != 0:
-                            del shared.map_queue[0]
+                        shared.map_queue.nextMap()
 
                         draw_grid = True
                         shared.gameVars()

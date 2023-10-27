@@ -9,8 +9,10 @@ import os
 from pygame import transform, display, RESIZABLE, Surface
 from pygame.font import Font
 
+from components.mapqueue import MapQueue
 from utils.gamestage_enum import GameStage
 from utils.map_utils import px_to_colordict, getAnImmap
+
 
 # import utils.map_utils as map_utils
 
@@ -39,7 +41,7 @@ def init():
     with open(os.path.join(SELF_LOC, '..', 'assets', 'color.json')) as json_file:
         COLORS = json.load(json_file)
     STANDARD_FONT = Font(os.path.join('..', 'assets',  'fonts', 'OpenSans', 'static', 'OpenSans_Condensed-SemiBold.ttf'), 30)
-    map_queue = []
+    map_queue = MapQueue()
     stage = GameStage.START
     screen = Surface((window_w, window_h))
     rscreen = display.set_mode((window_w, window_h), RESIZABLE)
@@ -64,6 +66,8 @@ def gameVars(resize = False, first = False):
             TILES = json.load(f)
 
     if not resize:
+        if len(map_queue) == 0:
+            map_queue.appendRandomMap()
         immap = getAnImmap(map_queue)
         tile_colors = [tuple(TILES[key]['color']) for key in TILES]
         mapcolors = px_to_colordict(immap, tile_colors)
