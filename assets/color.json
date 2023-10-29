@@ -1,4 +1,5 @@
 {
+    "default" : [255, 43, 23],
     "all" : {
         "background" : [41, 71, 46],
         "back_btn" : {
@@ -47,6 +48,11 @@
             "border1" : [255, 255, 255],
             "font1" : [0, 0, 0]
         },
+        "score_btn" : {
+            "stage1" : [73, 94, 128],
+            "border1" : [255, 255, 255],
+            "font1" : [0, 0, 0]
+        },
         "active_bomb-font" : [255, 255, 255],
         "total_score-font" : [255, 255, 255],
         "part_score-font" : [255, 255, 255],
@@ -61,6 +67,17 @@
                 "stage1" : [75, 83, 32],
                 "font1" : [0, 0, 0]
             }
+        }
+    },
+    "score" : {
+        "window_background" : [63, 117, 78],
+        "top_line" : [255, 255, 255],
+        "header_font" : [255, 255, 255],
+        "item_font" : [255, 255, 255],
+        "page_btn" : {
+            "stage1" : [65, 23, 41],
+            "font1" : [255, 255, 255],
+            "border1" : [255, 255, 255]
         }
     }
 }

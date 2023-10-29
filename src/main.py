@@ -53,6 +53,8 @@ def main():
     first_run = True
     draw_grid = True
 
+    draw_background_grid = False
+
     selecting = False
     game_clock = pygame.time.Clock()
     while shared.stage != GameStage.QUIT:
@@ -115,6 +117,13 @@ def main():
 
             mouse_tile_cords = utils.mouseTilecords()
 
+            if draw_background_grid == True:
+                # Technically this makes it possible to click on a button on the Game "screen" in the same frame
+                # This issue however is almost impossible to run into
+                draw_grid = True
+                draw_background_grid = False
+                shared.stage = GameStage.SCORE
+
             if draw_grid:
                 sDraw.drawGrid()
                 sDraw.drawTileIcons()
@@ -159,6 +168,9 @@ def main():
                         shared.gameVars()
                         clearBombs()
 
+                    if Button.instances["score"].checkmouseover(mouse_pos):
+                        shared.stage = GameStage.SCORE
+
                 if event.type == pygame.MOUSEBUTTONDOWN and mouse_pos[0] > shared.MENU_WIDTH and selecting == False:
                     selecting = True
                     selection = list()
@@ -178,7 +190,34 @@ def main():
                     sDraw.updateSurface(shared.screen)
                     draw_grid = True
                     continue
+        if shared.stage == GameStage.SCORE:
+            sDraw.drawScoreScreen()
+            from utils.utils import center
+            main_backdrop_cords = center(shared.window_w / 2.5, shared.window_h / 1.2, shared.window_w, shared.window_h, "both")
+            box = (main_backdrop_cords[0], main_backdrop_cords[1], main_backdrop_cords[0] + shared.window_w / 2.5, main_backdrop_cords[1] + shared.window_h / 1.2)
+            for event in pygame.event.get():
 
+                if event.type == pygame.QUIT:
+                    shared.stage = GameStage.QUIT
+                    break
+
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if not box[0] <= mouse_pos[0] <= box[2] or not box[1] <= mouse_pos[1] <= box[3]:
+                        shared.stage = GameStage.GAME
+
+
+                    for key, page_btn in Button.instances.items():
+                        reresult = re.search( r'page_btn_(\d+)', key)
+                        if reresult:
+                            if page_btn.checkmouseover(mouse_pos):
+                                sDraw.score_page = int(reresult.group(1))
+
+
+                if event.type == pygame.VIDEORESIZE:
+                    shared.stage = GameStage.GAME
+                    shared.onWindowScale(event)
+                    sDraw.updateSurface(shared.screen)
+                    draw_background_grid = True
         # at the end of every frame
         shared.rscreen.blit(shared.screen, (0,0))
         pygame.display.flip()

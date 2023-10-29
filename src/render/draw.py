@@ -6,6 +6,8 @@ Status: Working
 import time
 import os
 import re
+from json import load
+from math import ceil
 
 from pygame import Surface, Rect, draw, image, transform
 from pygame import draw as pydraw
@@ -22,6 +24,7 @@ from utils.utils import cordsConvert, center
 class Draw:
     def __init__(self, surface: Surface) -> None:
         self.surface = surface
+        self.score_page = 0
 
     def updateSurface(self, surface):
         self.surface = surface
@@ -34,8 +37,6 @@ class Draw:
             draw.line(self.surface, color, (last_x,y), (x, y), line_width)
             last_x = x + gap_length
             x += dash_length + gap_length
-
-
 
     def drawGrid(self):
         '''Used to draw base grid before effects'''
@@ -99,13 +100,13 @@ class Draw:
             bomb_button.draw()
             bomb_button_y_pos += 60
 
-        Button(self.surface, "clear", shared.COLORS["game"]["clear_btn"]["stage1"], 10, shared.window_h - 210, 150, 50, "Clear bombs", shared.STANDARD_FONT, shared.COLORS["game"]["clear_btn"]["font1"], [shared.COLORS["game"]["clear_btn"]["border1"], 2, 4], insta_draw=True)
-        Button(self.surface, "nextmap", shared.COLORS["game"]["next_map_btn"]["stage1"], 10, shared.window_h - 150, 150, 50, "Next map", shared.STANDARD_FONT, shared.COLORS["game"]["next_map_btn"]["font1"],[shared.COLORS["game"]["next_map_btn"]["border1"] ,3, 4], insta_draw=True)
+        Button(self.surface, "clear", shared.COLORS["game"]["clear_btn"]["stage1"], 10, shared.window_h - 210, 150, 50, "Clear bombs", shared.STANDARD_FONT, shared.COLORS["game"]["clear_btn"]["font1"], [shared.COLORS["game"]["clear_btn"]["border1"], 3, 4], insta_draw=True)
+        Button(self.surface, "nextmap", shared.COLORS["game"]["next_map_btn"]["stage1"], 10, shared.window_h - 150, 150, 50, "Next map", shared.STANDARD_FONT, shared.COLORS["game"]["next_map_btn"]["font1"], [shared.COLORS["game"]["next_map_btn"]["border1"] ,3, 4], insta_draw=True)
         #endregion
         if time.time() >= explode_time + max(Bomb.explode_durations):
             Button(self.surface, "explode", shared.COLORS["game"]["explode_btn"]["stage1"], 10, shared.window_h - 90, 150, 50, "EXPLODE!", shared.STANDARD_FONT, shared.COLORS["game"]["explode_btn"]["font1"],[shared.COLORS["game"]["explode_btn"]["border1"] ,3, 4], insta_draw=True)
         else:
-            Button(self.surface, "explode", shared.COLORS["game"]["explode_btn"]["stage2"], 10, shared.window_h - 90, 150, 50, "EXPLODE!", shared.STANDARD_FONT, shared.COLORS["game"]["explode_btn"]["font2"],[shared.COLORS["game"]["explode_btn"]["border2"] ,3, 4], insta_draw=True)
+            Button(self.surface, "explode", shared.COLORS["game"]["explode_btn"]["stage2"], 10, shared.window_h - 90, 150, 50, "EXPLODE!", shared.STANDARD_FONT, shared.COLORS["game"]["explode_btn"]["font2"], [shared.COLORS["game"]["explode_btn"]["border2"] ,3, 4], insta_draw=True)
 
 
         # draw active-bomb text
@@ -118,7 +119,7 @@ class Draw:
         total_score_font = active_bomb_font
         part_score_font = Font(os.path.join('..', 'assets',  'fonts', 'OpenSans', 'static', 'OpenSans_Condensed-SemiBold.ttf'), 20)
         part_score_font_color = shared.COLORS["game"]["part_score-font"]
-        part_score_y = shared.window_h - 270 -(len(shared.score_parts) * 30)
+        part_score_y = shared.window_h - 270 - (len(shared.score_parts) * 30)
         for key, value in shared.score_parts.items():
             part_score_ftext = part_score_font.render(f"{key}: {value}", True, part_score_font_color)
             self.surface.blit(part_score_ftext, (20, part_score_y))
@@ -129,6 +130,65 @@ class Draw:
         total_score_font_color = shared.COLORS["game"]["total_score-font"]
         total_score_ftext = total_score_font.render(f"Score:{total_score}", True, total_score_font_color)
         self.surface.blit(total_score_ftext, (20, shared.window_h - 260))
+
+        Button(self.surface, "score", shared.COLORS["game"]["score_btn"]["stage1"], 170 ,shared.window_h - 210, 20, 20, "", shared.STANDARD_FONT, (0,0,0), border=[shared.COLORS["game"]["score_btn"]["border1"], 3, 4] ,insta_draw = True)
+
+        score_icon = image.load(os.path.join("..", "assets", "icons", "score_list.png")).convert()
+        score_icon = transform.scale(score_icon, [19, 19])
+        shared.screen.blit(score_icon, [170, shared.window_h - 210])
+
+    def drawScoreScreen(self):
+        box_width, box_height = shared.window_w / 2.5, shared.window_h / 1.2
+        main_backdrop_cords = center(box_width, box_height, shared.window_w, shared.window_h, "both")
+        box = (main_backdrop_cords[0], main_backdrop_cords[1], box_width, box_height)
+        main_backdrop = Rect(box)
+        pydraw.rect(self.surface, shared.COLORS["score"]["window_background"], main_backdrop, border_radius= 10)
+
+        pydraw.line(self.surface, shared.COLORS["score"]["top_line"], (box[0], box[1] + 70), (box[0]+ box_width, box[1] + 70), 2)
+
+        header_font = shared.STANDARD_FONT
+        header_color = shared.COLORS["score"]["header_font"]
+        mapname = shared.map_queue[0].rpartition('_')[0]
+
+        with open(os.path.join('..', 'userdata', 'scores.json'), 'r') as json_file:
+            MAP_SCORES = load(json_file)
+
+        if mapname in MAP_SCORES:
+            scores_times = [score for score in MAP_SCORES[mapname].values()]
+            scores_times.reverse()
+            highest_score = max([score[0] for score in MAP_SCORES[mapname].values()])
+        else:
+            highest_score = 0
+            scores_times = []
+
+        header_ftext = header_font.render(f"{mapname} highscore: {highest_score}", True, header_color)
+        self.surface.blit(header_ftext, (box[0] + 5, box[1] + 10))
+
+        item_font = shared.STANDARD_FONT
+        item_color = shared.COLORS["score"]["item_font"]
+
+        item_y = box[1] + 75
+        items_per_page = int((box_height - 75 - 50) / 30) if not 0 else 1 # 75: top header; 50: bottom button bar; 30: height of every item
+        items_per_page = items_per_page if items_per_page != 0 else 1
+        pages_needed = ceil(len(scores_times) / items_per_page)
+        for score_time in scores_times[self.score_page * items_per_page : self.score_page * items_per_page + items_per_page]:
+            item_ftext = item_font.render(f"{score_time[0]} : {score_time[1]}", True, item_color)
+            self.surface.blit(item_ftext, (box[0] + 5, item_y))
+
+            item_y += 30
+            if item_y > (box[1] + box_height - 50):
+                break
+
+        x = box[0] + (box_width - 40 * pages_needed) / 2
+        button_y = box[1] + box_height - 40
+        for p in range(pages_needed):
+            RoundButton(self.surface, f"page_btn_{p}", shared.COLORS["score"]["page_btn"]["stage1"], x, button_y, 30, 30, str(p + 1), shared.STANDARD_FONT, shared.COLORS["score"]["page_btn"]["font1"], [shared.COLORS["score"]["page_btn"]["border1"], 2], insta_draw=True)
+
+            x += 40
+
+
+
+
 
     def drawEfects(self, mouse_pos, mouse_tile_cords, explode_t):
         #clicked efects

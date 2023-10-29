@@ -10,4 +10,5 @@ class GameStage(IntEnum):
     QUIT = auto()
     START = auto()
     MAP_SELECT = auto()
+    SCORE = auto()
     GAME = auto()
