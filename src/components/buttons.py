@@ -72,7 +72,7 @@ class RoundButton(Button):
         self.text_width  = self.ftext.get_width()
         self.text_height = self.ftext.get_height()
         self.text_centered_x = self.x_pos + center(item_width = self.text_width, parent_width = self.width, center_direction = 'horizontal')
-        self.text_centered_y = self.y_pos + center(item_height = self.text_height, parent_height = self.height, center_direction = 'vertical')
+        self.text_centered_y = self.y_pos + center(item_height = self.text_height, parent_height = self.height, center_direction = 'vertical') - 1 # to make text apear more centered
         self.surface.blit(self.ftext, (self.text_centered_x, self.text_centered_y))
 
     def checkmouseover(self, mouse_pos) -> bool:
