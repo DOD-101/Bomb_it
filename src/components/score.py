@@ -8,6 +8,7 @@ import json
 import os
 import datetime
 from components.bombs import Bomb
+from utils.ScoresEncoder import ScoresEncoder
 
 def registerScoreParameter(function):
     shared.score_functions.add(function)
@@ -27,7 +28,7 @@ def saveScore(score: int | float, map_name: str) -> list:
     Returns the array, which it saved.
     """
     with open(os.path.join('..', 'userdata', 'scores.json'), 'r') as json_file:
-        SCORES = json.load(json_file)
+        SCORES: dict = json.load(json_file)
 
     map_name = map_name.split('_')[0]
 
@@ -37,9 +38,11 @@ def saveScore(score: int | float, map_name: str) -> list:
     key = len(SCORES[map_name])
 
     time = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    SCORES[map_name][key] = [score, time]
 
-    json_object = json.dumps(SCORES, indent=4)
+    SCORES[map_name][key] = [score, time, {key: list(bomb.tiles) for key, bomb in Bomb.instances.items()}]
+
+
+    json_object = ScoresEncoder.default(SCORES)
 
     with open(os.path.join('..', 'userdata', 'scores.json'), 'w') as json_file:
         json_file.write(json_object)

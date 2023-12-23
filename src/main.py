@@ -8,7 +8,7 @@ Status: Working
 import time
 import os
 import re
-import random
+import json
 
 import pygame
 pygame.init()
@@ -23,23 +23,22 @@ from PIL import Image
 from utils import utils
 from utils.gamestage_enum import GameStage
 from utils.selecttiles import selectTiles
-from utils.clearbombs import clearBombs
+from utils.bombplacement import clearBombs, placeBombs
 from components.bombs import Bomb, ConventionalBomb
 from components.buttons import Button, BombButton
 from components.mapframe import MapFrame
 from components.score import calculateTotalScore, saveScore
-from utils.clearbombs import clearBombs
 from utils.map_utils import px_to_colordict
 from render.draw import Draw
 
 def main():
-    global  mouse_pos, selection, explode_time
+    global  mouse_pos, selection, explode_time # should not be global anymore
     # pygame.init()
     pygame.display.set_caption("Bomb It!")
 
     # Bombs
     kt10_img = pygame.image.load(os.path.join('..', 'assets', 'bomb_icons', 'conventional', '10kt.png')).convert()
-    Bomb.instances["kt10"] = ConventionalBomb(shared.screen, 0, 2,kt10_img, "kt10", "G-kt10", 10)
+    Bomb.instances["kt10"] = ConventionalBomb(shared.screen, 0, 2, kt10_img, "kt10", "G-kt10", 10)
     kt50_img = pygame.image.load(os.path.join('..', 'assets', 'bomb_icons', 'conventional', '50kt.png')).convert()
     Bomb.instances["kt50"] = ConventionalBomb(shared.screen, 2, 2, kt50_img, "kt50", "G-kt50", 150)
     kt100_img = pygame.image.load(os.path.join('..', 'assets', 'bomb_icons', 'conventional', '100kt.png')).convert()
@@ -205,13 +204,23 @@ def main():
                     if not box[0] <= mouse_pos[0] <= box[2] or not box[1] <= mouse_pos[1] <= box[3]:
                         shared.stage = GameStage.GAME
 
-
+                    # select page buttons
                     for key, page_btn in Button.instances.items():
-                        reresult = re.search( r'page_btn_(\d+)', key)
+                        reresult = re.search(r'page_btn_(\d+)', key)
                         if reresult:
                             if page_btn.checkmouseover(mouse_pos):
                                 sDraw.score_page = int(reresult.group(1))
 
+                    # bomb place buttons
+                    for key, place_button in Button.instances.items():
+                        reresult = re.search(r'bomb_place_(\d+)', key)
+                        if reresult:
+                            if place_button.checkmouseover(mouse_pos):
+                                with open(os.path.join('..', 'userdata', 'scores.json'), 'r') as json_file:
+                                    SCORES: dict = json.load(json_file)
+                                # gets the proper dict of bomb cords -- possible since the num in the name of the button is the same as in the scores.json
+                                placeBombs(SCORES[shared.map_queue[0].split('_')[0]][re.search(r'\d+', key).group()][2])
+                                shared.stage = GameStage.GAME
 
                 if event.type == pygame.VIDEORESIZE:
                     shared.stage = GameStage.GAME
