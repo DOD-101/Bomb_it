@@ -4,6 +4,7 @@ Implements the Bomb abc and the conventional bomb.
 Status: Working
 """
 import abc
+from os.path import join
 
 from pygame import Surface, Rect, draw, transform
 
@@ -15,7 +16,7 @@ class Bomb(abc.ABC):
     '''This is the abc that all bombs should inherit from'''
     instances = {}
     explode_durations = []
-    def __init__(self, surface: Surface, radius, explode_duration, tile_icon: tuple | Surface, explosion_color, key:str, nickname:str, price:int, create_button = True, buttonname = "NONE") -> None:
+    def __init__(self, surface: Surface, radius, explode_duration, tile_icon: tuple | Surface, explosion_color, key:str, nickname:str, price:int, sounds: list, create_button = True, buttonname = "NONE") -> None:
         self.surface = surface
         self.key = key
         self.nickname = nickname
@@ -28,6 +29,7 @@ class Bomb(abc.ABC):
         self.explode_duration = explode_duration
         self.explosion_color = explosion_color
         self.price = price
+        self.sounds = sounds
         if create_button:
             BombButton(surface, buttonname,0,0,0,0, self.nickname, self) # should be changed to make it clear that a BombButton is being made when setting the create button arg
 
@@ -52,7 +54,8 @@ class Bomb(abc.ABC):
 
 class ConventionalBomb(Bomb):
     def __init__(self, screen, radius, explode_duration, tile_icon: tuple | Surface, key:str, nickname:str, price: int) -> None:
-        super().__init__(screen, radius, explode_duration, tile_icon, shared.COLORS["game"]["bombs"]["conventional"]["explosion-area"], key, nickname, price, create_button=True, buttonname=key)
+        super().__init__(screen, radius, explode_duration, tile_icon, shared.COLORS["game"]["bombs"]["conventional"]["explosion-area"], key, nickname, \
+                         price, [join("..", "assets", "sounds", "explosion01.mp3"), join("..", "assets", "sounds", "explosion02.mp3")], create_button=True, buttonname=key)
 
     def draw(self):
         if type(self.tile_icon) == tuple:

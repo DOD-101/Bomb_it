@@ -8,7 +8,7 @@ Status: Working
 import time
 import os
 import re
-import json
+from threading import Thread
 
 import pygame
 pygame.init()
@@ -28,7 +28,7 @@ from components.bombs import Bomb, ConventionalBomb
 from components.buttons import Button, BombButton
 from components.mapframe import MapFrame
 from components.score import calculateTotalScore, saveScore
-from utils.map_utils import px_to_colordict
+from components.explosion import startExplosion
 from render.draw import Draw
 
 def main():
@@ -56,6 +56,7 @@ def main():
 
     selecting = False
     game_clock = pygame.time.Clock()
+    frame = 0
     while shared.stage != GameStage.QUIT:
         mouse_pos = pygame.mouse.get_pos()
         if shared.stage == GameStage.START:
@@ -158,6 +159,7 @@ def main():
                             bomb.calculateAreas()
                         total_score = calculateTotalScore()
                         saveScore(total_score, shared.map_queue[0])
+                        Thread(target=startExplosion).start()
                         explode_time = time.time()
 
                     if Button.instances["nextmap"].checkmouseover(mouse_pos):
@@ -230,7 +232,8 @@ def main():
         # at the end of every frame
         shared.rscreen.blit(shared.screen, (0,0))
         pygame.display.flip()
-
+        frame += 1
+        print(frame, end='\r')
         game_clock.tick(FPS)
 
 sDraw = Draw(shared.screen) # sDraw for screenDraw
