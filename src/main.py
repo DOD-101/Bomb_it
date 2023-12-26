@@ -9,6 +9,7 @@ import time
 import os
 import re
 from threading import Thread
+from json import load
 
 import pygame
 pygame.init()
@@ -18,13 +19,11 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 import shared
 shared.init()
 
-from PIL import Image
-
 from utils import utils
 from utils.gamestage_enum import GameStage
 from utils.selecttiles import selectTiles
 from utils.bombplacement import clearBombs, placeBombs
-from components.bombs import Bomb, ConventionalBomb
+from components.bombs import Bomb, ConventionalBomb, ClusterBomb
 from components.buttons import Button, BombButton
 from components.mapframe import MapFrame
 from components.score import calculateTotalScore, saveScore
@@ -44,6 +43,10 @@ def main():
     kt100_img = pygame.image.load(os.path.join('..', 'assets', 'bomb_icons', 'conventional', '100kt.png')).convert()
     Bomb.instances["kt100"] = ConventionalBomb(shared.screen, 5, 2, kt100_img, "kt100", "G-kt100", 600)
 
+    c5_img = pygame.image.load(os.path.join('..', 'assets', 'bomb_icons', 'cluster', '5c.png')).convert()
+    Bomb.instances["c5"] = ClusterBomb(shared.screen, 5, 80, 2, c5_img, "c5", "C-5", 60)
+    c10_img = pygame.image.load(os.path.join('..', 'assets', 'bomb_icons', 'cluster', '10c.png')).convert()
+    Bomb.instances["c10"] = ClusterBomb(shared.screen, 10, 80, 2, c10_img, "c10", "C-10", 100)
     #-----
     shared.active_bomb = list(Bomb.instances.values())[0]
 
@@ -219,7 +222,7 @@ def main():
                         if reresult:
                             if place_button.checkmouseover(mouse_pos):
                                 with open(os.path.join('..', 'userdata', 'scores.json'), 'r') as json_file:
-                                    SCORES: dict = json.load(json_file)
+                                    SCORES: dict = load(json_file)
                                 # gets the proper dict of bomb cords -- possible since the num in the name of the button is the same as in the scores.json
                                 placeBombs(SCORES[shared.map_queue[0].split('_')[0]][re.search(r'\d+', key).group()][2])
                                 shared.stage = GameStage.GAME

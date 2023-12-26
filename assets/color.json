@@ -60,6 +60,9 @@
         "bombs" : {
             "conventional" : {
                 "explosion-area" : [255, 102, 0]
+            },
+            "cluster" : {
+                "explosion-area" : [230, 72, 0]
             }
         },
         "bomb-buttons" : {

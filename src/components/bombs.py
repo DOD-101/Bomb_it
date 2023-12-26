@@ -5,6 +5,7 @@ Status: Working
 """
 import abc
 from os.path import join
+from random import randint
 
 from pygame import Surface, Rect, draw, transform
 
@@ -72,7 +73,7 @@ class ConventionalBomb(Bomb):
             raise TypeError(f"Invalid type '{type(self.tile_icon)}' for self.tile_icon")
 
     def calculateAreas(self):
-        """This bomb type has only 1 Area: explosion_area"""
+        """This bomb type has only 1 area: explosion_area"""
         self.explosion_area: set[tuple[int,int]] = set()
         for loc in self.tiles:
             rect = [loc[0] - self.radius, loc[1] - self.radius, loc[0] + self.radius, loc[1] + self.radius] #not a pygame rect! [top_left_x, top_left_y, bottom_right_x, bottom_right_y]
@@ -86,3 +87,26 @@ class ConventionalBomb(Bomb):
         for explosion_effect in self.explosion_area:
             real_loc = cordsConvert(explosion_effect, shared.tile_size, True)
             draw.rect(self.surface, self.explosion_color, Rect(real_loc[0], real_loc[1],shared.tile_size,shared.tile_size))
+
+class ClusterBomb(Bomb):
+    def __init__(self, surface: Surface, radius: int, threshold: int ,explode_duration, tile_icon: tuple | Surface, key: str, nickname: str, price: int) -> None:
+        super().__init__(surface, radius, explode_duration, tile_icon, shared.COLORS["game"]["bombs"]["cluster"]["explosion-area"], \
+                          key, nickname, price, [join("..", "assets", "sounds", "explosion02.mp3")], buttonname=key)
+        self.threshold = threshold
+
+    def draw(self):
+        return ConventionalBomb.draw(self)
+
+    def calculateAreas(self):
+        """This bomb has only 1 area: explosion_area,
+        but unlike a conventional bomb only some tiles in the radius will explode. """
+        self.explosion_area: set[tuple[int,int]] = set()
+        for loc in self.tiles:
+            rect = [loc[0] - self.radius, loc[1] - self.radius, loc[0] + self.radius, loc[1] + self.radius] #not a pygame rect! [top_left_x, top_left_y, bottom_right_x, bottom_right_y]
+            for x in range(rect[0], rect[2] + 1):
+                for y in range(rect[1], rect[3] + 1):
+                    if randint(0,100) > self.threshold:
+                        self.explosion_area.add((x,y))
+
+    def explode(self, current_t, explode_t):
+        return ConventionalBomb.explode(self, current_t, explode_t)
