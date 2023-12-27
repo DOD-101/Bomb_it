@@ -181,15 +181,17 @@ class Draw:
         items_per_page = int((box_height - 75 - 50) / 30) if not 0 else 1 # 75: top header; 50: bottom button bar; 30: height of every item
         items_per_page = items_per_page if items_per_page != 0 else 1
         pages_needed = ceil(len(all_map_scores) / items_per_page)
-        button_num = 0
+        place_icon = image.load(os.path.join("..", "assets", "icons", "place.png")).convert_alpha()
+        # place_icon = transform.smoothscale(place_icon, [16,16])
         # gets all scores to be displayed on page and displays them
         for score_time in all_map_scores[self.score_page * items_per_page : self.score_page * items_per_page + items_per_page]:
             item_ftext = item_font.render(f"{score_time[0]} : {score_time[1]}", True, item_color)
             self.surface.blit(item_ftext, (backdrop_box[0] + 5, item_y))
 
-            Button(self.surface, f"bomb_place_{len(all_map_scores) - all_map_scores.index(score_time) - 1}", shared.COLORS["score"]["place_btn"], \
-                    backdrop_box[0] + backdrop_box[2] - 40, item_y + 5, 25, 25, "P", shared.STANDARD_FONT, "white", insta_draw=True)
-
+            place_button_rect = [backdrop_box[0] + backdrop_box[2] - 40, item_y + 5, 25, 25]
+            Button(self.surface, f"bomb_place_{len(all_map_scores) - all_map_scores.index(score_time) - 1}", shared.COLORS["score"]["window_background"], \
+                     place_button_rect[0], place_button_rect[1], place_button_rect[2], place_button_rect[3],"", shared.STANDARD_FONT, "white", insta_draw=True)
+            shared.screen.blit(place_icon, place_button_rect)
             item_y += 30
 
         # endregion
