@@ -220,6 +220,16 @@ class Draw:
         current_time = time.time()
         for bomb in Bomb.instances.values():
             bomb.explode(current_time, explode_t)
+        # bomb explosion radius on hover
+        for bomb in Bomb.instances.values():
+            bomb.radius
+            for tile in bomb.tiles:
+                position = cordsConvert(tile, shared.tile_size, True)
+                if mouse_pos[0] > position[0] and mouse_pos[1] > position[1] and \
+                    mouse_pos[0] < position[0] + shared.tile_size and mouse_pos[1] < position[1] + shared.tile_size:
+                    size = bomb.radius * shared.tile_size * 2 + shared.tile_size
+                    position = list(map(lambda x: x + shared.tile_size/2, position))
+                    self.draw_centered_dashed_rect(self.surface, "red", position, [size, size], 10, 5)
 
     def drawStartMenu(self):
         self.surface.fill(shared.COLORS["all"]["background"])
@@ -275,3 +285,28 @@ class Draw:
         map_launch_btn_size = (190, 50)
         map_launch_btn_x, map_launch_btn_y = center(item_width = map_launch_btn_size[0], parent_width = shared.MAP_QUEUE_W, center_direction="horizontal"), shared.window_h - map_launch_btn_size[1] - 5
         Button(self.surface, "maplaunch", shared.COLORS["map_select"]["launch_btn"]["stage1"], map_launch_btn_x, map_launch_btn_y, map_launch_btn_size[0], map_launch_btn_size[1], "Launch!", shared.STANDARD_FONT,shared.COLORS["map_select"]["launch_btn"]["font1"], insta_draw=True)
+
+    def _draw_dashed_line(self, surface, color, start_pos, end_pos, dash_length, width):
+        x1, y1 = start_pos
+        x2, y2 = end_pos
+        dx = x2 - x1
+        dy = y2 - y1
+        distance = max(abs(dx), abs(dy))
+        for i in range(0, distance, 2 * dash_length):
+            start = (x1 + dx * i / distance, y1 + dy * i / distance)
+            end = (x1 + dx * (i + dash_length) / distance, y1 + dy * (i + dash_length) / distance)
+            draw.line(surface, color, start, end, width)
+
+    def _draw_dashed_rect(self, surface, color, rect, dash_length, width):
+        x, y, w, h = rect
+        self.draw_dashed_line(surface, color, (x, y), (x+w, y), dash_length, width)  # Top border
+        self.draw_dashed_line(surface, color, (x, y), (x, y+h), dash_length, width)  # Left border
+        self.draw_dashed_line(surface, color, (x+w, y), (x+w, y+h), dash_length, width)  # Right border
+        self.draw_dashed_line(surface, color, (x, y+h), (x+w, y+h), dash_length, width)  # Bottom border
+
+    def _draw_centered_dashed_rect(self, surface, color, center, size, dash_length, width):
+        x, y = center
+        w, h = size
+        rect = Rect(0, 0, w, h)
+        rect.center = (x, y)
+        self.draw_dashed_rect(surface, color, rect, dash_length, width)
