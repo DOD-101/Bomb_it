@@ -229,7 +229,7 @@ class Draw:
                     mouse_pos[0] < position[0] + shared.tile_size and mouse_pos[1] < position[1] + shared.tile_size:
                     size = bomb.radius * shared.tile_size * 2 + shared.tile_size
                     position = list(map(lambda x: x + shared.tile_size/2, position))
-                    self.draw_centered_dashed_rect(self.surface, "red", position, [size, size], 10, 5)
+                    self._draw_centered_dashed_rect(self.surface, "red", position, [size, size], 10, 5)
 
     def drawStartMenu(self):
         self.surface.fill(shared.COLORS["all"]["background"])
@@ -299,14 +299,14 @@ class Draw:
 
     def _draw_dashed_rect(self, surface, color, rect, dash_length, width):
         x, y, w, h = rect
-        self.draw_dashed_line(surface, color, (x, y), (x+w, y), dash_length, width)  # Top border
-        self.draw_dashed_line(surface, color, (x, y), (x, y+h), dash_length, width)  # Left border
-        self.draw_dashed_line(surface, color, (x+w, y), (x+w, y+h), dash_length, width)  # Right border
-        self.draw_dashed_line(surface, color, (x, y+h), (x+w, y+h), dash_length, width)  # Bottom border
+        self._draw_dashed_line(surface, color, (x, y), (x+w, y), dash_length, width)  # Top border
+        self._draw_dashed_line(surface, color, (x, y), (x, y+h), dash_length, width)  # Left border
+        self._draw_dashed_line(surface, color, (x+w, y), (x+w, y+h), dash_length, width)  # Right border
+        self._draw_dashed_line(surface, color, (x, y+h), (x+w, y+h), dash_length, width)  # Bottom border
 
     def _draw_centered_dashed_rect(self, surface, color, center, size, dash_length, width):
         x, y = center
         w, h = size
         rect = Rect(0, 0, w, h)
         rect.center = (x, y)
-        self.draw_dashed_rect(surface, color, rect, dash_length, width)
+        self._draw_dashed_rect(surface, color, rect, dash_length, width)
