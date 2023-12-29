@@ -68,7 +68,7 @@
         "bomb-buttons" : {
             "conventional" : {
                 "stage1" : [75, 83, 32],
-                "font1" : [0, 0, 0]
+                "font1" : [255, 255, 255]
             }
         }
     },

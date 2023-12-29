@@ -93,7 +93,7 @@ class Draw:
         for bomb_button in BombButton.instances.values():
             bomb_button.x_pos = 20
             bomb_button.y_pos = bomb_button_y_pos
-            bomb_button.width = 100
+            bomb_button.width = 150
             bomb_button.height = 50
 
             bomb_button.setSurface(shared.screen)
