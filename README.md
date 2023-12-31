@@ -1,5 +1,9 @@
-# Bomb it!
-<sub>Version: 0.1.0.27</sub>
+# Bomb It!
+
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint)
+
+<sub>Version: 0.1.0.28</sub>
 
 ## What is this?
 Bomb it! is an open-source game written in python using the pygame module package.
@@ -17,14 +21,21 @@ If you wish to help with development or want to contact me for any other reason:
 ## Style guide
 The following rules are to be followed for all python code written for this project.
 
-These rules are based on PEP 8: https://peps.python.org/pep-0008
+These rules are generally based on [PEP 8](https://peps.python.org/pep-0008) & [The Black Formatter](https://github.com/psf/black)
 
-    1. Classes: Follow PEP 8
-    2. Variables: Follow PEP 8
-    3. Functions/Methods: Use "lower camel case" (aka. functionName). Avoid using underscores.
-    4. Avoid abbreviations unless they (a) improve readability, (b) are clear in their meaning or are explained and/or (c) occur frequently.
+    1. Classes: PascalCase
+    2. Variables: snake_case
+    3. Functions/Methods: camelCase
+    4. Modules: snake_case (but avoid underscores unless it improves readability)
+    5. Whenever using abbreviations make sure that they are clear in their meaning or are explained (via comment) and
+    should always improve readability not come at the cost of it.
 
-    As with everything here, use common sense and ask if you are uncertain.
+    For any other uncertainties feel free to ask me.
+
+It is required that everyone writing code for this repo use pylint and the black formatter.
+
+Note 1: Bomb It is starting to use pylint and black hence there are still some inconsistencies.
+Note 2: You need to whitelist pygame for pylint since it contains quite a lot of C code. "--extension-pkg-whitelist=pygame"
 
 ## Dependencies/Assets and Licenses
 

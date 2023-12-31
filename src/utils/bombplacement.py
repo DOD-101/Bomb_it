@@ -5,14 +5,16 @@ Status: Working
 """
 
 
-from components.bombs import Bomb
 import shared
+from components.bombs import Bomb
+
 
 def clearBombs():
     """Clears all bombs from the map."""
     for bomb in Bomb.instances.values():
         bomb.tiles = set()
         shared.selected_tiles = set()
+
 
 def placeBombs(bomb_cords: dict):
     """Takes in a dict of the form:
@@ -26,6 +28,8 @@ def placeBombs(bomb_cords: dict):
     """
     for key, value in Bomb.instances.items():
         if key in bomb_cords:
-            value.tiles = set([tuple(tile) for tile in bomb_cords[key]])
+            value.tiles = {tuple(tile) for tile in bomb_cords[key]}
 
-    shared.selected_tiles = set(tile for bomb in Bomb.instances.values() for tile in bomb.tiles)
+    shared.selected_tiles = set(
+        tile for bomb in Bomb.instances.values() for tile in bomb.tiles
+    )

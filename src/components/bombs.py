@@ -7,22 +7,39 @@ import abc
 from os.path import join
 from random import randint
 
-from pygame import Surface, Rect, draw, transform
+from pygame import Rect, Surface, draw, transform
 
 import shared
-from utils.utils import strToRGB, cordsConvert
+from utils.utils import cordsConvert, strToRGB
+
 from .buttons import BombButton
 
+
 class Bomb(abc.ABC):
-    '''This is the abc that all bombs should inherit from'''
+    """This is the abc that all bombs should inherit from"""
+
     instances = {}
     explode_durations = []
-    def __init__(self, surface: Surface, radius, explode_duration, tile_icon: tuple | Surface, explosion_color, key:str, nickname:str, price:int, sounds: list, create_button = True, buttonname = "NONE") -> None:
+
+    def __init__(
+        self,
+        surface: Surface,
+        radius,
+        explode_duration,
+        tile_icon: tuple | Surface,
+        explosion_color,
+        key: str,
+        nickname: str,
+        price: int,
+        sounds: list,
+        create_button=True,
+        buttonname="NONE",
+    ) -> None:
         self.surface = surface
         self.key = key
         self.nickname = nickname
         self.radius = radius
-        if type(tile_icon) == str:
+        if isinstance(tile_icon, str):
             self.tile_icon = strToRGB(tile_icon)
         else:
             self.tile_icon = tile_icon
@@ -32,9 +49,8 @@ class Bomb(abc.ABC):
         self.price = price
         self.sounds = sounds
         if create_button:
-            BombButton(surface, buttonname,0,0,0,0, self.nickname, self) # should be changed to make it clear that a BombButton is being made when setting the create button arg
+            BombButton(surface, buttonname, 0, 0, 0, 0, self.nickname, self)
 
-        # Bomb.instances[self.instance_name] = [self.__class__.__name__, self.instance_name,self.nickname]
         Bomb.explode_durations.append(self.explode_duration)
 
     def setSurface(self, surface):
@@ -43,70 +59,156 @@ class Bomb(abc.ABC):
 
     @abc.abstractmethod
     def draw(self):
-        pass
+        """
+        This abstract method is for implementing the drawing of
+        every tile on wich a bomb is placed.
+        """
 
     @abc.abstractmethod
     def calculateAreas(self):
-        pass
+        """
+        This abstract method is for implementing the calculation of
+        where a bomb explodes.
+        """
 
     @abc.abstractmethod
     def explode(self):
-        pass
+        """
+        This abstract method is for implementing the functionality
+        that will be called when the bomb explodes. Including
+        drawing the previously calculated areas.
+        """
+
 
 class ConventionalBomb(Bomb):
-    def __init__(self, screen, radius, explode_duration, tile_icon: tuple | Surface, key:str, nickname:str, price: int) -> None:
-        super().__init__(screen, radius, explode_duration, tile_icon, shared.COLORS["game"]["bombs"]["conventional"]["explosion-area"], key, nickname, \
-                         price, [join("..", "assets", "sounds", "explosion01.mp3"), join("..", "assets", "sounds", "explosion02.mp3")], create_button=True, buttonname=key)
+    """
+    A conventional bomb simply explodes in a square.
+    The size of the square is defined by the radius."""
+
+    def __init__(
+        self,
+        screen,
+        radius,
+        explode_duration,
+        tile_icon: tuple | Surface,
+        key: str,
+        nickname: str,
+        price: int,
+    ) -> None:
+        super().__init__(
+            screen,
+            radius,
+            explode_duration,
+            tile_icon,
+            shared.COLORS["game"]["bombs"]["conventional"]["explosion-area"],
+            key,
+            nickname,
+            price,
+            [
+                join("..", "assets", "sounds", "explosion01.mp3"),
+                join("..", "assets", "sounds", "explosion02.mp3"),
+            ],
+            create_button=True,
+            buttonname=key,
+        )
+        self.explosion_area: set[tuple[int, int]] = set()
 
     def draw(self):
-        if type(self.tile_icon) == tuple:
+        if isinstance(self.tile_icon, tuple):
             for loc in self.tiles:
                 real_loc = cordsConvert(loc, shared.tile_size, True)
-                rect = Rect(real_loc[0], real_loc[1], shared.tile_size, shared.tile_size)
+                rect = Rect(
+                    real_loc[0], real_loc[1], shared.tile_size, shared.tile_size
+                )
                 draw.rect(self.surface, self.tile_icon, rect)
-        elif type(self.tile_icon) == Surface:
+        elif isinstance(self.tile_icon, Surface):
             for loc in self.tiles:
                 real_loc = cordsConvert(loc, shared.tile_size, True)
-                tile_icon_scaled = transform.scale(self.tile_icon, (shared.tile_size, shared.tile_size))
+                tile_icon_scaled = transform.scale(
+                    self.tile_icon, (shared.tile_size, shared.tile_size)
+                )
                 self.surface.blit(tile_icon_scaled, (real_loc[0], real_loc[1]))
         else:
             raise TypeError(f"Invalid type '{type(self.tile_icon)}' for self.tile_icon")
 
     def calculateAreas(self):
         """This bomb type has only 1 area: explosion_area"""
-        self.explosion_area: set[tuple[int,int]] = set()
+        self.explosion_area.clear()
         for loc in self.tiles:
-            rect = [loc[0] - self.radius, loc[1] - self.radius, loc[0] + self.radius, loc[1] + self.radius] #not a pygame rect! [top_left_x, top_left_y, bottom_right_x, bottom_right_y]
+            rect = [
+                loc[0] - self.radius,  # top_left_x
+                loc[1] - self.radius,  # top_left_y
+                loc[0] + self.radius,  # bottom_right_x
+                loc[1] + self.radius,  # bottom_right_y
+            ]  # not a pygame rect!
             for x in range(rect[0], rect[2] + 1):
                 for y in range(rect[1], rect[3] + 1):
-                    self.explosion_area.add((x,y))
+                    self.explosion_area.add((x, y))
 
     def explode(self, current_t, explode_t):
         if not current_t - self.explode_duration <= explode_t or self.tiles == set():
-            return None
+            return
         for explosion_effect in self.explosion_area:
             real_loc = cordsConvert(explosion_effect, shared.tile_size, True)
-            draw.rect(self.surface, self.explosion_color, Rect(real_loc[0], real_loc[1],shared.tile_size,shared.tile_size))
+            draw.rect(
+                self.surface,
+                self.explosion_color,
+                Rect(real_loc[0], real_loc[1], shared.tile_size, shared.tile_size),
+            )
+
 
 class ClusterBomb(Bomb):
-    def __init__(self, surface: Surface, radius: int, threshold: int ,explode_duration, tile_icon: tuple | Surface, key: str, nickname: str, price: int) -> None:
-        super().__init__(surface, radius, explode_duration, tile_icon, shared.COLORS["game"]["bombs"]["cluster"]["explosion-area"], \
-                          key, nickname, price, [join("..", "assets", "sounds", "explosion02.mp3")], buttonname=key)
+    """
+    A cluster bomb explodes on a random amount of tiles within a square.
+    The size of the square is determined by the radius
+    and the amount of epxlosions is roughly controlled
+    by the treshhold (given in %).
+    """
+
+    def __init__(
+        self,
+        surface: Surface,
+        radius: int,
+        threshold: int,
+        explode_duration,
+        tile_icon: tuple | Surface,
+        key: str,
+        nickname: str,
+        price: int,
+    ) -> None:
+        super().__init__(
+            surface,
+            radius,
+            explode_duration,
+            tile_icon,
+            shared.COLORS["game"]["bombs"]["cluster"]["explosion-area"],
+            key,
+            nickname,
+            price,
+            [join("..", "assets", "sounds", "explosion02.mp3")],
+            buttonname=key,
+        )
         self.threshold = threshold
+        self.explosion_area: set[tuple[int, int]] = set()
 
     def draw(self):
         return ConventionalBomb.draw(self)
 
     def calculateAreas(self):
         """This bomb has only 1 area: explosion_area,
-        but unlike a conventional bomb only some tiles in the radius will explode. """
-        self.explosion_area: set[tuple[int,int]] = set()
+        but unlike a conventional bomb only some tiles in the radius will explode."""
+        self.explosion_area.clear()
         for loc in self.tiles:
-            rect = [loc[0] - self.radius, loc[1] - self.radius, loc[0] + self.radius, loc[1] + self.radius] #not a pygame rect! [top_left_x, top_left_y, bottom_right_x, bottom_right_y]
+            rect = [
+                loc[0] - self.radius,  # top_left_x
+                loc[1] - self.radius,  # top_left_y
+                loc[0] + self.radius,  # bottom_right_x
+                loc[1] + self.radius,  # bottom_right_y
+            ]  # not a pygame rect!
             for x in range(rect[0], rect[2] + 1):
                 for y in range(rect[1], rect[3] + 1):
-                    if randint(0,100) > self.threshold:
-                        self.explosion_area.add((x,y))
+                    if randint(0, 100) > self.threshold:
+                        self.explosion_area.add((x, y))
 
     def explode(self, current_t, explode_t):
         return ConventionalBomb.explode(self, current_t, explode_t)
