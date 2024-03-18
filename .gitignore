@@ -3,3 +3,4 @@ _*.*
 !__*.*
 __pycache__
 *.*drawio
+.venv
