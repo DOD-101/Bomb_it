@@ -3,6 +3,7 @@ Defines necessary variables used across the project.
 
 Status: Working
 """
+
 import json
 import os
 
@@ -36,7 +37,7 @@ def init():
     MAP_QUEUE_W = 200
     PATH_TO_MAPS = os.path.realpath(os.path.join("..", "assets", "maps"))
     window_w = 1000
-    window_h = 300
+    window_h = 1000
     score_functions = set()
     SELF_LOC = os.path.dirname(os.path.realpath(__file__))
     with open(os.path.join(SELF_LOC, "..", "assets", "color.json")) as json_file:
@@ -64,7 +65,6 @@ def onWindowScale(event):
     """Updates values when the games window is scaled."""
     global screen, rscreen, window_w, window_h
     window_w, window_h = event.size
-    rscreen = display.set_mode((window_w, window_h), RESIZABLE)
     screen = transform.scale(screen, (window_w, window_h))
     screen.fill(COLORS["all"]["background"])
     _updateAndInit(resize=True)

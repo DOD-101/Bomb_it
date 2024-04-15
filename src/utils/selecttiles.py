@@ -3,6 +3,7 @@ Implements the function responsible for selecting tiles.
 
 Status: Working
 """
+
 import shared
 from components.bombs import Bomb
 from utils.utils import cordsConvert
@@ -30,7 +31,6 @@ def selectTiles(selection, active_bomb, remove=False):
         for y in range(abs(y1 - y2) + 1):
             y += min(y1, y2)
             tile = (x, y)
-            print("---------------")
             if tile in shared.selected_tiles and remove:
                 shared.selected_tiles.remove(tile)
                 # active_bomb.tiles.discard(tile)
@@ -42,6 +42,5 @@ def selectTiles(selection, active_bomb, remove=False):
             elif tile not in shared.selected_tiles and not remove:
                 shared.selected_tiles.add(tile)
                 active_bomb.tiles.add(tile)
-            print("-------------------")
 
     return active_bomb.tiles

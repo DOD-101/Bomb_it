@@ -4,7 +4,6 @@ The main file of the "Bomb it" game.
 Status: Working
 """
 
-
 import os
 import re
 import time
