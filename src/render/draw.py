@@ -3,6 +3,7 @@ Implements the draw class, which contains all draw functions.
 
 Status: Working
 """
+
 import os
 import re
 import time
@@ -489,6 +490,28 @@ class Draw:
             menu_btn_font,
             shared.COLORS["start_menu"]["button-font"],
             insta_draw=True,
+        )
+
+        RoundButton(
+            self.surface,
+            "mute",
+            shared.COLORS["all"]["background"],
+            10,
+            shared.window_h - 50,
+            40,
+            40,
+            "",
+            shared.STANDARD_FONT,
+            "white",
+            insta_draw=True,
+        )
+        mute_icon = image.load(
+            os.path.join("..", "assets", "icons", "speaker-off.png")
+        ).convert_alpha()
+        mute_icon = transform.smoothscale(mute_icon, [40, 40])
+        shared.screen.blit(
+            mute_icon,
+            [10, shared.window_h - 50],
         )
 
     def drawMapSelect(self):

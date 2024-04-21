@@ -18,6 +18,7 @@ from components.buttons import BombButton, Button
 from components.explosion import startExplosion
 from components.mapframe import MapFrame
 from components.score import calculateTotalScore, saveScore, score_functions
+from components.musicplayer import song_daemon_init, toggle_mute
 from render.draw import Draw
 from utils import utils
 from utils.bombplacement import clearBombs, placeBombs
@@ -82,6 +83,7 @@ def main():
     selecting = False
     game_clock = pygame.time.Clock()
     frame = 0
+    song_daemon_init()
     while shared.stage != GameStage.QUIT:
         mouse_pos = pygame.mouse.get_pos()
         if shared.stage == GameStage.START:
@@ -97,6 +99,10 @@ def main():
 
                     if Button.instances["mapselect"].checkMouseOver(mouse_pos):
                         shared.stage = GameStage.MAP_SELECT
+
+                    if Button.instances["mute"].checkMouseOver(mouse_pos):
+                        print("called")
+                        toggle_mute()
 
                 if event.type == pygame.VIDEORESIZE:
                     shared.onWindowScale(event)
