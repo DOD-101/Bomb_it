@@ -115,7 +115,7 @@ class RoundButton(Button):
         text: str,
         font,
         font_color,
-        border: Literal["color", "width"] = None,
+        border: Literal["color", "width"] = ["white", 0],
         insta_draw: bool = False,
     ) -> None:
         super().__init__(
