@@ -3,7 +3,9 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint)
 
-<sub>Version: 0.1.1.0</sub>
+<sub>Version: 0.1.1.1</sub>
+
+I'm no longer working on this.
 
 ## What is this?
 Bomb it! is an open-source game written in python using the pygame module package.
